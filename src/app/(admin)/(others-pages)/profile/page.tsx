@@ -1,13 +1,13 @@
-import UserAddressCard from "@/components/user-profile/UserAddressCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
+import ChangePasswordCard from "@/components/user-profile/ChangePasswordCard";
 import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
+  title: "Next.js Profile | Elan.az Admin - Next.js Dashboard Template",
   description:
-    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+    "This is Next.js Profile page for Elan.az Admin - Next.js Tailwind CSS Admin Dashboard Template",
 };
 
 export default function Profile() {
@@ -20,7 +20,7 @@ export default function Profile() {
         <div className="space-y-6">
           <UserMetaCard />
           <UserInfoCard />
-          <UserAddressCard />
+          <ChangePasswordCard />
         </div>
       </div>
     </div>

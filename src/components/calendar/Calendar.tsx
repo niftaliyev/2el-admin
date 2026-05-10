@@ -4,6 +4,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import azLocale from "@fullcalendar/core/locales/az";
 import {
   EventInput,
   DateSelectArg,
@@ -32,10 +33,10 @@ const Calendar: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
 
   const calendarsEvents = {
-    Danger: "danger",
-    Success: "success",
-    Primary: "primary",
-    Warning: "warning",
+    Təhlükəli: "danger",
+    Uğurlu: "success",
+    Əsas: "primary",
+    Xəbərdarlıq: "warning",
   };
 
   useEffect(() => {
@@ -43,19 +44,19 @@ const Calendar: React.FC = () => {
     setEvents([
       {
         id: "1",
-        title: "Event Conf.",
+        title: "Tədbir Konf.",
         start: new Date().toISOString().split("T")[0],
         extendedProps: { calendar: "Danger" },
       },
       {
         id: "2",
-        title: "Meeting",
+        title: "Görüş",
         start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
         extendedProps: { calendar: "Success" },
       },
       {
         id: "3",
-        title: "Workshop",
+        title: "Vorkşop",
         start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
         end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
         extendedProps: { calendar: "Primary" },
@@ -127,6 +128,7 @@ const Calendar: React.FC = () => {
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
+          locale={azLocale}
           headerToolbar={{
             left: "prev,next addEventButton",
             center: "title",
@@ -139,7 +141,7 @@ const Calendar: React.FC = () => {
           eventContent={renderEventContent}
           customButtons={{
             addEventButton: {
-              text: "Add Event +",
+              text: "Tədbir Əlavə Et +",
               click: openModal,
             },
           }}
@@ -153,18 +155,17 @@ const Calendar: React.FC = () => {
         <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
           <div>
             <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-              {selectedEvent ? "Edit Event" : "Add Event"}
+              {selectedEvent ? "Tədbiri Redaktə Et" : "Tədbir Əlavə Et"}
             </h5>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Plan your next big moment: schedule or edit an event to stay on
-              track
+              Növbəti böyük anınızı planlaşdırın: yolda qalmaq üçün bir tədbir təyin edin və ya redaktə edin
             </p>
           </div>
           <div className="mt-8">
             <div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Event Title
+                  Tədbir Başlığı
                 </label>
                 <input
                   id="event-title"
@@ -177,7 +178,7 @@ const Calendar: React.FC = () => {
             </div>
             <div className="mt-6">
               <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-400">
-                Event Color
+                Tədbir Rəngi
               </label>
               <div className="flex flex-wrap items-center gap-4 sm:gap-5">
                 {Object.entries(calendarsEvents).map(([key, value]) => (
@@ -217,7 +218,7 @@ const Calendar: React.FC = () => {
 
             <div className="mt-6">
               <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Enter Start Date
+                Başlanğıc Tarixi
               </label>
               <div className="relative">
                 <input
@@ -232,7 +233,7 @@ const Calendar: React.FC = () => {
 
             <div className="mt-6">
               <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Enter End Date
+                Bitmə Tarixi
               </label>
               <div className="relative">
                 <input
@@ -251,14 +252,14 @@ const Calendar: React.FC = () => {
               type="button"
               className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
             >
-              Close
+              Bağla
             </button>
             <button
               onClick={handleAddOrUpdateEvent}
               type="button"
               className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
             >
-              {selectedEvent ? "Update Changes" : "Add Event"}
+              {selectedEvent ? "Dəyişiklikləri Yenilə" : "Tədbir Əlavə Et"}
             </button>
           </div>
         </div>
@@ -268,7 +269,8 @@ const Calendar: React.FC = () => {
 };
 
 const renderEventContent = (eventInfo: EventContentArg) => {
-  const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar.toLowerCase()}`;
+  const calendarKey = eventInfo.event.extendedProps.calendar;
+  const colorClass = `fc-bg-${(calendarKey || "Primary").toLowerCase()}`;
   return (
     <div
       className={`event-fc-color flex fc-event-main ${colorClass} p-1 rounded-sm`}

@@ -124,19 +124,19 @@ export default function BasicTableOne() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  User
+                  İstifadəçi
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Project Name
+                  Layihə Adı
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Team
+                  Komanda
                 </TableCell>
                 <TableCell
                   isHeader
@@ -148,7 +148,7 @@ export default function BasicTableOne() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Budget
+                  Büdcə
                 </TableCell>
               </TableRow>
             </TableHeader>
@@ -209,7 +209,11 @@ export default function BasicTableOne() {
                           : "error"
                       }
                     >
-                      {order.status}
+                      {order.status === "Active"
+                      ? "Aktiv"
+                      : order.status === "Pending"
+                      ? "Gözləmədə"
+                      : "Ləğv edilib"}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">

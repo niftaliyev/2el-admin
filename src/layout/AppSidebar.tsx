@@ -16,8 +16,14 @@ import {
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
+  PlusIcon,
+  FileIcon,
+  AlertIcon,
+  EnvelopeIcon,
+  BoxIconLine,
+  InfoIcon,
 } from "../icons/index";
-import SidebarWidget from "./SidebarWidget";
+
 
 type NavItem = {
   name: string;
@@ -29,67 +35,69 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    name: "Panel",
+    path: "/",
   },
   {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
+    icon: <ListIcon />,
+    name: "Elanlar",
+    path: "/ads",
   },
   {
     icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
-  },
-
-  {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    name: "İstifadəçilər",
+    path: "/users",
   },
   {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+    icon: <AlertIcon />,
+    name: "Şikayətlər",
+    path: "/reports",
   },
   {
-    name: "Pages",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
+    icon: <FileIcon />,
+    name: "Bannerlər",
+    path: "/banners",
+  },
+  {
+    icon: <EnvelopeIcon />,
+    name: "Reklam Müraciətləri",
+    path: "/ad-applications",
+  },
+  {
+    icon: <BoxCubeIcon />,
+    name: "Mağaza Sorğuları",
+    path: "/store-requests",
+  },
+  {
+    icon: <PieChartIcon />,
+    name: "Balans Sorğuları",
+    path: "/balance-requests",
+  },
+  {
+    icon: <BoxIconLine />,
+    name: "Kateqoriyalar",
+    path: "/categories",
   },
 ];
 
 const othersItems: NavItem[] = [
   {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
-    ],
+    icon: <BoxIconLine />,
+    name: "Biznes Paketləri",
+    path: "/business-packages",
   },
   {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
-    ],
+    icon: <InfoIcon />,
+    name: "Yardım / Səhifələr",
+    path: "/help",
   },
   {
     icon: <PlugInIcon />,
-    name: "Authentication",
+    name: "Tənzimləmələr",
     subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Marka / Modellər", path: "/seed-data" },
+      { name: "Ödəniş Rekvizitləri", path: "/payment-details" },
+      { name: "Şirkət Məlumatları", path: "/company-settings" },
     ],
   },
 ];
@@ -310,29 +318,18 @@ const AppSidebar: React.FC = () => {
       >
         <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <Image
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <Image
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-brand-500 text-white font-bold text-xl shadow-lg shadow-brand-500/20">
+                E
+              </div>
+              <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Elan.az <span className="text-brand-500">Admin</span>
+              </span>
+            </div>
           ) : (
-            <Image
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+            <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-brand-500 text-white font-bold text-2xl shadow-lg shadow-brand-500/20">
+              E
+            </div>
           )}
         </Link>
       </div>
@@ -348,7 +345,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+                  "Menyu"
                 ) : (
                   <HorizontaLDots />
                 )}
@@ -365,7 +362,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "Digər"
                 ) : (
                   <HorizontaLDots />
                 )}
@@ -374,7 +371,7 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
+
       </div>
     </aside>
   );

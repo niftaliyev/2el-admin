@@ -19,7 +19,7 @@ const DropzoneComponent: React.FC = () => {
     },
   });
   return (
-    <ComponentCard title="Dropzone">
+    <ComponentCard title="Fayl Yükləmə Sahəsi">
       <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-gray-700 rounded-xl hover:border-brand-500">
         <form
           {...getRootProps()}
@@ -56,16 +56,16 @@ const DropzoneComponent: React.FC = () => {
             </div>
 
             {/* Text Content */}
-            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
-              {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
+            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90 text-center">
+              {isDragActive ? "Faylları buraya buraxın" : "Faylları buraya sürükləyin və buraxın"}
             </h4>
 
             <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
-              Drag and drop your PNG, JPG, WebP, SVG images here or browse
+              PNG, JPG, WebP, SVG şəkillərinizi buraya sürükləyin və ya seçin
             </span>
 
             <span className="font-medium underline text-theme-sm text-brand-500">
-              Browse File
+              Faylı Seçin
             </span>
           </div>
         </form>

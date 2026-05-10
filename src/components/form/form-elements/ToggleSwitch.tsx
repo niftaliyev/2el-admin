@@ -8,34 +8,34 @@ export default function ToggleSwitch() {
     console.log("Switch is now:", checked ? "ON" : "OFF");
   };
   return (
-    <ComponentCard title="Toggle switch input">
+    <ComponentCard title="Dəyişdirici daxiletmə">
       <div className="flex gap-4">
         <Switch
-          label="Default"
+          label="Standart"
           defaultChecked={true}
           onChange={handleSwitchChange}
         />
         <Switch
-          label="Checked"
+          label="Seçilmiş"
           defaultChecked={true}
           onChange={handleSwitchChange}
         />
-        <Switch label="Disabled" disabled={true} />
+        <Switch label="Deaktiv" disabled={true} />
       </div>{" "}
       <div className="flex gap-4">
         <Switch
-          label="Default"
+          label="Standart"
           defaultChecked={true}
           onChange={handleSwitchChange}
           color="gray"
         />
         <Switch
-          label="Checked"
+          label="Seçilmiş"
           defaultChecked={true}
           onChange={handleSwitchChange}
           color="gray"
         />
-        <Switch label="Disabled" disabled={true} color="gray" />
+        <Switch label="Deaktiv" disabled={true} color="gray" />
       </div>
     </ComponentCard>
   );

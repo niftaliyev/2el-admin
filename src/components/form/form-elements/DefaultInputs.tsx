@@ -18,22 +18,22 @@ export default function DefaultInputs() {
     console.log("Selected value:", value);
   };
   return (
-    <ComponentCard title="Default Inputs">
+    <ComponentCard title="Standart Daxiletmələr">
       <div className="space-y-6">
         <div>
-          <Label>Input</Label>
+          <Label>Daxiletmə</Label>
           <Input type="text" />
         </div>
         <div>
-          <Label>Input with Placeholder</Label>
+          <Label>Yer tutucu ilə daxiletmə</Label>
           <Input type="text" placeholder="info@gmail.com" />
         </div>
         <div>
-          <Label>Select Input</Label>
+          <Label>Seçim daxiletməsi</Label>
           <div className="relative">
             <Select
             options={options}
-            placeholder="Select an option"
+            placeholder="Seçim edin"
             onChange={handleSelectChange}
             className="dark:bg-dark-900"
           />
@@ -43,11 +43,11 @@ export default function DefaultInputs() {
           </div>
         </div>
         <div>
-          <Label>Password Input</Label>
+          <Label>Şifrə daxiletməsi</Label>
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
+              placeholder="Şifrənizi daxil edin"
             />
             <button
               onClick={() => setShowPassword(!showPassword)}
@@ -65,8 +65,8 @@ export default function DefaultInputs() {
         <div>
           <DatePicker
             id="date-picker"
-            label="Date Picker Input"
-            placeholder="Select a date"
+            label="Tarix seçimi"
+            placeholder="Tarix seçin"
             onChange={(dates, currentDateString) => {
               // Handle your logic
               console.log({ dates, currentDateString });
@@ -75,7 +75,7 @@ export default function DefaultInputs() {
         </div>
 
         <div>
-          <Label htmlFor="tm">Time Picker Input</Label>
+          <Label htmlFor="tm">Vaxt seçimi</Label>
           <div className="relative">
             <Input
               type="time"
@@ -89,11 +89,11 @@ export default function DefaultInputs() {
           </div>
         </div>
         <div>
-          <Label htmlFor="tm">Input with Payment</Label>
+          <Label htmlFor="tm">Ödəniş ilə daxiletmə</Label>
           <div className="relative">
             <Input
               type="text"
-              placeholder="Card number"
+              placeholder="Kart nömrəsi"
               className="pl-[62px]"
             />
             <span className="absolute left-0 top-1/2 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-r border-gray-200 dark:border-gray-800">
