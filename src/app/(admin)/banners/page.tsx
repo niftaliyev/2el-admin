@@ -137,10 +137,8 @@ export default function AdminBannersPage() {
 
   const getPositionName = (pos: number | string) => {
     const map: Record<string | number, string> = {
-      1: 'Sol Sidebar', 2: 'Sağ Sidebar', 3: 'Yuxarı (Top)',
-      4: 'Aşağı (Bottom)', 5: 'Məzmun Arası', 6: 'Branding (Wallpaper)',
-      'LeftSidebar': 'Sol Sidebar', 'RightSidebar': 'Sağ Sidebar', 'Top': 'Yuxarı (Top)',
-      'Bottom': 'Aşağı (Bottom)', 'InnerContent': 'Məzmun Arası', 'Branding': 'Branding (Wallpaper)'
+      1: 'Sol Sidebar', 2: 'Sağ Sidebar',
+      'LeftSidebar': 'Sol Sidebar', 'RightSidebar': 'Sağ Sidebar'
     };
     return map[pos] || 'Naməlum';
   };
@@ -332,8 +330,8 @@ export default function AdminBannersPage() {
                           name="position"
                           defaultValue={
                             typeof selectedBanner?.position === 'number'
-                              ? ({ 1: 'LeftSidebar', 2: 'RightSidebar', 3: 'Top', 4: 'Bottom', 5: 'InnerContent', 6: 'Branding' } as Record<number, string>)[selectedBanner.position]
-                              : selectedBanner?.position || 'Top'
+                              ? ({ 1: 'LeftSidebar', 2: 'RightSidebar' } as Record<number, string>)[selectedBanner.position]
+                              : selectedBanner?.position || 'LeftSidebar'
                           }
                           className={inputClass}
                         >
