@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/button/Button';
-import { Modal } from '@/components/ui/modal';
+import { Modal, ConfirmationModal } from '@/components/ui/modal';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
 
@@ -15,6 +15,18 @@ export default function AdminBusinessPackagesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'packages' | 'purchases'>('packages');
   const [editingPackage, setEditingPackage] = useState<any>(null);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -101,14 +113,20 @@ export default function AdminBusinessPackagesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bu paketi silmək istədiyinizə əminsiniz?')) return;
-    try {
-      await adminService.deleteBusinessPackage(id);
-      toast.success('Paket silindi');
-      loadData();
-    } catch (error) {
-      toast.error('Xəta baş verdi');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Paketi Sil',
+      message: 'Bu paketi silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteBusinessPackage(id);
+          toast.success('Paket silindi');
+          loadData();
+        } catch (error) {
+          toast.error('Xəta baş verdi');
+        }
+      },
+    });
   };
 
   if (isLoading) {
@@ -406,6 +424,15 @@ export default function AdminBusinessPackagesPage() {
           </form>
         </Modal>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </div>
   );
 }

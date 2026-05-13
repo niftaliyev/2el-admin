@@ -36,7 +36,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       if (!mobile) {
         setIsMobileOpen(false);
@@ -56,8 +56,23 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const toggleMobileSidebar = () => {
-    setIsMobileOpen((prev) => !prev);
+    setIsMobileOpen((prev) => {
+      const newState = !prev;
+      if (newState) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+      return newState;
+    });
   };
+
+  useEffect(() => {
+    // Ensure scroll is restored if component unmounts or screen resizes
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   const toggleSubmenu = (item: string) => {
     setOpenSubmenu((prev) => (prev === item ? null : item));

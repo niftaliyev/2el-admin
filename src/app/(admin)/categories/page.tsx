@@ -17,6 +17,7 @@ import {
   ListIcon,
   PieChartIcon
 } from '@/icons';
+import { ConfirmationModal } from '@/components/ui/modal';
 
 interface SubCategory {
   id: string;
@@ -66,6 +67,18 @@ export default function CategoriesPage() {
   const [categoryFields, setCategoryFields] = useState<any[]>([]);
   const [selectedField, setSelectedField] = useState<any>(null);
   const [isFieldFormOpen, setIsFieldFormOpen] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchCategories();
@@ -128,15 +141,21 @@ export default function CategoriesPage() {
   };
 
   const handleDeleteField = async (id: string) => {
-    if (!confirm('Bu sahəni silmək istədiyinizə əminsiniz?')) return;
-    try {
-      await adminService.deleteCategoryField(id);
-      toast.success('Sahə silindi');
-      fetchFields(fieldsCategoryId!);
-      fetchCategories(); // Refresh field counts
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Xəta baş verdi');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Sahəni Sil',
+      message: 'Bu sahəni silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteCategoryField(id);
+          toast.success('Sahə silindi');
+          fetchFields(fieldsCategoryId!);
+          fetchCategories(); // Refresh field counts
+        } catch (error: any) {
+          toast.error(error?.response?.data?.message || 'Xəta baş verdi');
+        }
+      },
+    });
   };
 
   const toggleExpand = (id: string) => {
@@ -189,15 +208,21 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = async (id: string, type: 'category' | 'subcategory') => {
-    if (!confirm('Silmək istədiyinizə əminsiniz?')) return;
-    try {
-      if (type === 'category') await adminService.deleteCategory(id);
-      else await adminService.deleteSubCategory(id);
-      toast.success('Silindi');
-      fetchCategories();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Silinmə zamanı xəta baş verdi');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: type === 'category' ? 'Kateqoriyanı Sil' : 'Alt Kateqoriyanı Sil',
+      message: 'Silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          if (type === 'category') await adminService.deleteCategory(id);
+          else await adminService.deleteSubCategory(id);
+          toast.success('Silindi');
+          fetchCategories();
+        } catch (error: any) {
+          toast.error(error?.response?.data?.message || 'Silinmə zamanı xəta baş verdi');
+        }
+      },
+    });
   };
 
   const filterCategories = (cats: Category[]): Category[] => {
@@ -265,54 +290,56 @@ export default function CategoriesPage() {
     return (
       <div key={cat.id} className="w-full">
         <div
-          className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 border group
+          className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl transition-all duration-300 border group
             ${isExpanded ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-100 dark:border-brand-900/30' : 'bg-white dark:bg-gray-900/50 border-gray-100 dark:border-gray-800'}
             hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-none hover:border-brand-200 dark:hover:border-brand-800/50 mb-2`}
-          style={{ marginLeft: `${level * 28}px` }}
+          style={{ marginLeft: `${level * (typeof window !== 'undefined' && window.innerWidth < 640 ? 12 : 28)}px` }}
         >
-          <button
-            onClick={() => toggleExpand(cat.id)}
-            className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all
-              ${isExpanded ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}
-              ${!hasChildren ? 'opacity-0 cursor-default' : ''}`}
-          >
-            <ChevronDownIcon className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? '' : '-rotate-90'}`} />
-          </button>
+          <div className="flex items-center gap-4 flex-1">
+            <button
+              onClick={() => toggleExpand(cat.id)}
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all
+                ${isExpanded ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}
+                ${!hasChildren ? 'opacity-0 cursor-default' : ''}`}
+            >
+              <ChevronDownIcon className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? '' : '-rotate-90'}`} />
+            </button>
 
-          <div className="relative group/img">
-            <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 border-2 border-white dark:border-gray-700 shadow-sm overflow-hidden flex-shrink-0 transition-transform group-hover/img:scale-110">
-              {cat.imageUrl ? (
-                <img src={cat.imageUrl} alt="" className="w-full h-full object-contain p-2" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <GridIcon className="w-6 h-6" />
-                </div>
+            <div className="relative group/img">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 border-2 border-white dark:border-gray-700 shadow-sm overflow-hidden flex-shrink-0 transition-transform group-hover/img:scale-110">
+                {cat.imageUrl ? (
+                  <img src={cat.imageUrl} alt="" className="w-full h-full object-contain p-2" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <GridIcon className="w-6 h-6" />
+                  </div>
+                )}
+              </div>
+              {cat.fieldCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white dark:border-gray-900 shadow-sm">
+                  {cat.fieldCount}
+                </span>
               )}
             </div>
-            {cat.fieldCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white dark:border-gray-900 shadow-sm">
-                {cat.fieldCount}
-              </span>
-            )}
-          </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate">
-                {cat.name}
-              </h4>
-              <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-[10px] font-semibold text-gray-500 tracking-wider">
-                {cat.slug}
-              </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate">
+                  {cat.name}
+                </h4>
+                <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-[10px] font-semibold text-gray-500 tracking-wider">
+                  {cat.slug}
+                </span>
+              </div>
+              {cat.nameRu && (
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5 truncate italic">
+                  {cat.nameRu}
+                </p>
+              )}
             </div>
-            {cat.nameRu && (
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5 truncate italic">
-                {cat.nameRu}
-              </p>
-            )}
           </div>
 
-          <div className="flex items-center gap-1.5 px-2">
+          <div className="flex items-center justify-end gap-1.5 px-2 border-t sm:border-t-0 border-gray-100 dark:border-gray-800 pt-3 sm:pt-0">
             <button
               onClick={() => openFieldsModal(cat.id)}
               className="p-2.5 rounded-xl text-gray-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all group/btn"
@@ -375,24 +402,26 @@ export default function CategoriesPage() {
             {cat.children?.map(child => renderCategoryRow(child, 0))}
 
             {cat.subCategories?.map(sub => (
-              <div key={sub.id} className="flex items-center gap-4 p-3 rounded-2xl bg-gray-50/50 dark:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all group/sub shadow-sm hover:shadow-md">
-                <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 overflow-hidden flex-shrink-0 shadow-inner">
-                  {sub.imageUrl ? (
-                    <img src={sub.imageUrl} alt="" className="w-full h-full object-contain p-2" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <HorizontaLDots className="w-4 h-4" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h5 className="font-bold text-gray-700 dark:text-gray-300 group-hover/sub:text-brand-500 transition-colors text-sm">{sub.name}</h5>
-                    <span className="text-[10px] font-bold text-gray-400 opacity-60 tracking-widest">/ {sub.slug}</span>
+              <div key={sub.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 rounded-2xl bg-gray-50/50 dark:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all group/sub shadow-sm hover:shadow-md">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 overflow-hidden flex-shrink-0 shadow-inner">
+                    {sub.imageUrl ? (
+                      <img src={sub.imageUrl} alt="" className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <HorizontaLDots className="w-4 h-4" />
+                      </div>
+                    )}
                   </div>
-                  {sub.nameRu && <p className="text-[10px] font-medium text-gray-500 truncate italic">{sub.nameRu}</p>}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h5 className="font-bold text-gray-700 dark:text-gray-300 group-hover/sub:text-brand-500 transition-colors text-sm">{sub.name}</h5>
+                      <span className="text-[10px] font-bold text-gray-400 opacity-60 tracking-widest">/ {sub.slug}</span>
+                    </div>
+                    {sub.nameRu && <p className="text-[10px] font-medium text-gray-500 truncate italic">{sub.nameRu}</p>}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover/sub:opacity-100 transition-opacity pr-2">
+                <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 group-hover/sub:opacity-100 transition-opacity pr-2 border-t sm:border-t-0 border-gray-100 dark:border-gray-800 pt-2 sm:pt-0">
                   <button
                     onClick={() => {
                       setModalType('subcategory');
@@ -745,6 +774,15 @@ export default function CategoriesPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </div>
   );
 }

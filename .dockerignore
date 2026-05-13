@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+/node_modules
+
+# Next.js build output
+.next
+/.next
+out
+
+# Git
+.git
+.github
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Misc
+README.md
+LICENSE
+*.tsbuildinfo
+next-env.d.ts
+banner.png
+
+# Environment files
+.env*
+! .env.example

@@ -261,6 +261,14 @@
   scrollbar-width: none; /* Firefox */
 }
 
+@utility responsive-table-container {
+  @apply w-full overflow-x-auto custom-scrollbar;
+}
+
+@utility mobile-stack {
+  @apply flex flex-col sm:flex-row;
+}
+
 @utility custom-scrollbar {
   &::-webkit-scrollbar {
     @apply size-1.5;

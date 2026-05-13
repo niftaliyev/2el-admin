@@ -27,7 +27,7 @@ export default function RootLayout({
             <SidebarProvider>{children}</SidebarProvider>
           </ThemeProvider>
         </AuthProvider>
-        <Toaster position="top-right" />
+        <Toaster position="top-right" containerStyle={{ zIndex: 999999 }} />
       </body>
     </html>
   );

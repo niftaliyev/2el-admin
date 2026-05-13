@@ -5,10 +5,13 @@ import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState ,useEffect,useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import CommandPalette from "@/components/header/CommandPalette";
+import { useRouter, usePathname } from "next/navigation";
 
 const AppHeader: React.FC = () => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
@@ -85,13 +88,37 @@ const AppHeader: React.FC = () => {
             {/* Cross Icon */}
           </button>
 
+          {pathname !== "/" && (
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+              aria-label="Geri qayıt"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 19L8 12L15 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+
           <Link href="/" className="lg:hidden">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-500 text-white font-bold text-lg">
-                E
-              </div>
-              <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-                Elan.az <span className="text-brand-500">Admin</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white">
+                2el<span className="text-brand-500">.az</span>
+              </span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400 uppercase tracking-widest mt-0.5">
+                Admin
               </span>
             </div>
           </Link>

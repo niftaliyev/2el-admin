@@ -3,12 +3,35 @@
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
+import { Modal, ConfirmationModal } from '@/components/ui/modal';
 
 export default function AdminStoreRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const [rejectModal, setRejectModal] = useState<{
+    isOpen: boolean;
+    requestId: string | null;
+    reason: string;
+  }>({
+    isOpen: false,
+    requestId: null,
+    reason: '',
+  });
 
   useEffect(() => { fetchRequests(); }, []);
 
@@ -26,27 +49,40 @@ export default function AdminStoreRequestsPage() {
   };
 
   const handleApprove = async (id: string) => {
-    if (!confirm('Bu mağaza sorğusunu təsdiqləmək istədiyinizə əminsiniz?')) return;
-    setIsProcessing(true);
-    try {
-      await import('@/utils/api').then(m => m.default.post(`/admin/store-requests/${id}/approve`));
-      toast.success('Mağaza uğurla yaradıldı');
-      fetchRequests();
-      setSelectedRequest(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Xəta baş verdi');
-    } finally {
-      setIsProcessing(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Sorğunu Təsdiqlə',
+      message: 'Bu mağaza sorğusunu təsdiqləmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        setIsProcessing(true);
+        try {
+          await import('@/utils/api').then(m => m.default.post(`/admin/store-requests/${id}/approve`));
+          toast.success('Mağaza uğurla yaradıldı');
+          fetchRequests();
+          setSelectedRequest(null);
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Xəta baş verdi');
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+    });
   };
 
-  const handleReject = async (id: string) => {
-    const reason = prompt('Rədd etmə səbəbi:');
-    if (reason === null) return;
+  const handleReject = (id: string) => {
+    setRejectModal({ isOpen: true, requestId: id, reason: '' });
+  };
+
+  const submitReject = async () => {
+    if (!rejectModal.reason.trim()) {
+      toast.error('Səbəb daxil edilməlidir');
+      return;
+    }
     setIsProcessing(true);
     try {
-      await import('@/utils/api').then(m => m.default.post(`/admin/store-requests/${id}/reject`, JSON.stringify(reason), { headers: { 'Content-Type': 'application/json' } }));
+      await import('@/utils/api').then(m => m.default.post(`/admin/store-requests/${rejectModal.requestId}/reject`, JSON.stringify(rejectModal.reason), { headers: { 'Content-Type': 'application/json' } }));
       toast.success('Sorğu rədd edildi');
+      setRejectModal({ isOpen: false, requestId: null, reason: '' });
       fetchRequests();
       setSelectedRequest(null);
     } catch (error: any) {
@@ -57,18 +93,24 @@ export default function AdminStoreRequestsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bu müraciəti tamamilə silmək istədiyinizə əminsiniz?')) return;
-    setIsProcessing(true);
-    try {
-      await import('@/utils/api').then(m => m.default.delete(`/admin/store-requests/${id}`));
-      toast.success('Müraciət silindi');
-      fetchRequests();
-      setSelectedRequest(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Xəta baş verdi');
-    } finally {
-      setIsProcessing(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Müraciəti Sil',
+      message: 'Bu müraciəti tamamilə silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        setIsProcessing(true);
+        try {
+          await import('@/utils/api').then(m => m.default.delete(`/admin/store-requests/${id}`));
+          toast.success('Müraciət silindi');
+          fetchRequests();
+          setSelectedRequest(null);
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Xəta baş verdi');
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+    });
   };
 
   const statusBadge = (status: number) => {
@@ -280,6 +322,53 @@ export default function AdminStoreRequestsPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
+
+      {/* Reject Modal */}
+      <Modal
+        isOpen={rejectModal.isOpen}
+        onClose={() => setRejectModal(prev => ({ ...prev, isOpen: false }))}
+        title="Sorğunu Rədd Et"
+        className="max-w-md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Rədd etmə səbəbi
+            </label>
+            <textarea
+              value={rejectModal.reason}
+              onChange={e => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
+              placeholder="Səbəbi bura daxil edin..."
+              className="w-full h-32 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setRejectModal(prev => ({ ...prev, isOpen: false }))}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              Ləğv et
+            </button>
+            <button
+              onClick={submitReject}
+              disabled={isProcessing}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-error-500 text-white text-sm font-semibold hover:bg-error-600 transition-colors shadow-sm disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isProcessing && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+              Rədd et
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

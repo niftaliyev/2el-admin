@@ -6,7 +6,7 @@ import { helpService } from '@/services/help.service';
 import { HelpCategory, HelpItem, StaticPage, LegalPolicy, PrivacyPolicy } from '@/types/admin';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/button/Button';
-import { Modal } from '@/components/ui/modal';
+import { Modal, ConfirmationModal } from '@/components/ui/modal';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
 import QuillEditor from '@/components/form/QuillEditor';
@@ -37,6 +37,18 @@ export default function AdminHelpPage() {
   const [editingStatic, setEditingStatic] = useState<Partial<StaticPage> | null>(null);
   const [editingLegal, setEditingLegal] = useState<Partial<LegalPolicy> | null>(null);
   const [editingPrivacy, setEditingPrivacy] = useState<Partial<PrivacyPolicy> | null>(null);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   const fetchData = async () => {
     try {
@@ -85,14 +97,20 @@ export default function AdminHelpPage() {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Bu kateqoriyanı və bütün suallarını silmək istədiyinizə əminsiniz?')) return;
-    try {
-      await adminService.deleteHelpCategory(id);
-      toast.success('Kateqoriya silindi');
-      fetchData();
-    } catch (error) {
-      toast.error('Xəta baş verdi');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Kateqoriyanı Sil',
+      message: 'Bu kateqoriyanı və bütün suallarını silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteHelpCategory(id);
+          toast.success('Kateqoriya silindi');
+          fetchData();
+        } catch (error) {
+          toast.error('Xəta baş verdi');
+        }
+      },
+    });
   };
 
   // Item Actions
@@ -110,14 +128,20 @@ export default function AdminHelpPage() {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Bu sualı silmək istədiyinizə əminsiniz?')) return;
-    try {
-      await adminService.deleteHelpItem(id);
-      toast.success('Sual silindi');
-      fetchData();
-    } catch (error) {
-      toast.error('Xəta baş verdi');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Sualı Sil',
+      message: 'Bu sualı silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteHelpItem(id);
+          toast.success('Sual silindi');
+          fetchData();
+        } catch (error) {
+          toast.error('Xəta baş verdi');
+        }
+      },
+    });
   };
 
   // Static Page Actions
@@ -135,14 +159,20 @@ export default function AdminHelpPage() {
   };
 
   const handleDeleteStatic = async (id: string) => {
-    if (!confirm('Bu səhifəni silmək istədiyinizə əminsiniz?')) return;
-    try {
-      await adminService.deleteStaticPage(id);
-      toast.success('Səhifə silindi');
-      fetchData();
-    } catch (error) {
-      toast.error('Xəta baş verdi');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Səhifəni Sil',
+      message: 'Bu səhifəni silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteStaticPage(id);
+          toast.success('Səhifə silindi');
+          fetchData();
+        } catch (error) {
+          toast.error('Xəta baş verdi');
+        }
+      },
+    });
   };
 
   // Legal Policy Actions
@@ -160,14 +190,20 @@ export default function AdminHelpPage() {
   };
 
   const handleDeleteLegal = async (id: string) => {
-    if (!confirm('Bu hüquqi sənədi silmək istədiyinizə əminsiniz?')) return;
-    try {
-      await adminService.deleteLegalPolicy(id);
-      toast.success('Sənəd silindi');
-      fetchData();
-    } catch (error) {
-      toast.error('Xəta baş verdi');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Sənədi Sil',
+      message: 'Bu hüquqi sənədi silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteLegalPolicy(id);
+          toast.success('Sənəd silindi');
+          fetchData();
+        } catch (error) {
+          toast.error('Xəta baş verdi');
+        }
+      },
+    });
   };
 
   // Privacy Policy Actions
@@ -530,6 +566,15 @@ export default function AdminHelpPage() {
           <Button type="submit" className="w-full mt-2">Yadda Saxla</Button>
         </form>
       </Modal>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </div>
   );
 }

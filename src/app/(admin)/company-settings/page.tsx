@@ -76,7 +76,7 @@ export default function CompanySettingsPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>VÖEN</label>
               <input
@@ -95,7 +95,7 @@ export default function CompanySettingsPage() {
                 value={settings.email}
                 onChange={e => setSettings({ ...settings, email: e.target.value })}
                 className={inputClass}
-                placeholder="support@elan.az"
+                placeholder="support@2el.az"
                 required
               />
             </div>

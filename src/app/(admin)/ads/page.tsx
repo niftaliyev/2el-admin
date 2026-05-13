@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminService } from '@/services/admin.service';
 import { AdminAd } from '@/types/admin';
@@ -38,7 +38,7 @@ const statusLabel = (status: string) => {
   return map[status] || status;
 };
 
-export default function AdminAdsPage() {
+function AdminAdsPageContent() {
   const [ads, setAds] = useState<AdminAd[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
@@ -387,5 +387,17 @@ export default function AdminAdsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminAdsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600"></div>
+      </div>
+    }>
+      <AdminAdsPageContent />
+    </Suspense>
   );
 }

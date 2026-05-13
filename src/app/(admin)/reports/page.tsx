@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminService } from '@/services/admin.service';
 import { AdminReport } from '@/types/admin';
 import toast from 'react-hot-toast';
-import { Modal } from '@/components/ui/modal';
+import { Modal, ConfirmationModal } from '@/components/ui/modal';
 import Link from 'next/link';
 
 const STATUSES = [
@@ -49,7 +49,7 @@ const reasonLabel = (reason: string) => {
   return map[reason] || reason;
 };
 
-export default function AdminReportsPage() {
+function AdminReportsPageContent() {
   const [activeType, setActiveType] = useState<'ad' | 'store'>('ad');
   const [reports, setReports] = useState<AdminReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +57,17 @@ export default function AdminReportsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<AdminReport | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -92,10 +103,22 @@ export default function AdminReportsPage() {
   const handleAction = async (action: string, report: AdminReport) => {
     try {
       if (action === 'delete') {
-        if (!confirm('Bu şikayəti silmək istədiyinizə əminsiniz?')) return;
-        if (activeType === 'ad') await adminService.deleteAdReport(report.id);
-        else await adminService.deleteStoreReport(report.id);
-        toast.success('Şikayət silindi');
+        setConfirmModal({
+          isOpen: true,
+          title: 'Şikayəti Sil',
+          message: 'Bu şikayəti silmək istədiyinizə əminsiniz?',
+          onConfirm: async () => {
+            try {
+              if (activeType === 'ad') await adminService.deleteAdReport(report.id);
+              else await adminService.deleteStoreReport(report.id);
+              toast.success('Şikayət silindi');
+              fetchReports();
+            } catch {
+              toast.error('Əməliyyat zamanı xəta baş verdi');
+            }
+          },
+        });
+        return;
       } else if (action.startsWith('status-')) {
         const newStatus = parseInt(action.split('-')[1]);
         if (activeType === 'ad') await adminService.updateAdReportStatus(report.id, newStatus);
@@ -321,6 +344,27 @@ export default function AdminReportsPage() {
           </div>
         )}
       </Modal>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </div>
+  );
+}
+
+export default function AdminReportsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600"></div>
+      </div>
+    }>
+      <AdminReportsPageContent />
+    </Suspense>
   );
 }

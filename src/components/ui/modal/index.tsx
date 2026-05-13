@@ -104,3 +104,4 @@ export const Modal: React.FC<ModalProps> = ({
     </div>
   );
 };
+export * from "./ConfirmationModal";
