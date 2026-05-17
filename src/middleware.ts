@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Define public routes (auth pages)
-  const isAuthPage = pathname.startsWith('/signin') || pathname.startsWith('/signup');
+  const isAuthPage = pathname.startsWith('/signin') || pathname.startsWith('/signup') || pathname.startsWith('/autologin');
 
   // If user is on an auth page but is already logged in, redirect to dashboard
   if (isAuthPage && token) {

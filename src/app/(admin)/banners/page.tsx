@@ -305,7 +305,7 @@ function AdminBannersPageContent() {
       {isModalOpen && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center p-2 sm:p-4">
           <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-900 w-full max-w-5xl rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className={`relative bg-white dark:bg-gray-900 w-full ${showPreview && (tempScriptCode || selectedBanner?.scriptCode) ? 'max-w-5xl' : 'max-w-2xl'} rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[95vh] flex flex-col overflow-hidden transition-all duration-300 animate-in fade-in zoom-in duration-200`}>
             <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-5 flex items-center justify-between shrink-0">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {selectedBanner ? 'Banneri Redaktə Et' : 'Yeni Banner'}
