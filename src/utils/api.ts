@@ -80,7 +80,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post('http://localhost:5156/api/admin/auth/refresh', {
+        const response = await axios.post('http://84.247.184.186:5000/api/admin/auth/refresh', {
           accessToken,
           refreshToken,
         });
