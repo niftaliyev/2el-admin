@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
-export default function AdminDashboard() {
+function DashboardContent() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -106,3 +107,12 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+export default function AdminDashboard() {
+  return (
+    <PermissionGuard>
+      <DashboardContent />
+    </PermissionGuard>
+  );
+}
+

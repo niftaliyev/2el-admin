@@ -1,4 +1,5 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
@@ -8,7 +9,7 @@ import { Modal, ConfirmationModal } from '@/components/ui/modal';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
 
-export default function AdminBusinessPackagesPage() {
+function AdminBusinessPackagesPageContent() {
   const [packages, setPackages] = useState<any[]>([]);
   const [userPackages, setUserPackages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -434,5 +435,12 @@ export default function AdminBusinessPackagesPage() {
         message={confirmModal.message}
       />
     </div>
+  );
+}
+export default function AdminBusinessPackagesPage() {
+  return (
+    <PermissionGuard roles={["SuperAdmin", "Admin"]}>
+      <AdminBusinessPackagesPageContent />
+    </PermissionGuard>
   );
 }

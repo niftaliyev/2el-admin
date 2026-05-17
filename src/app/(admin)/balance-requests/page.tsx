@@ -1,4 +1,5 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useEffect, useState } from 'react';
 import { adminService } from '@/services/admin.service';
@@ -12,7 +13,7 @@ interface BalanceRequest {
   userName: string;
 }
 
-export default function BalanceRequestsPage() {
+function BalanceRequestsPageContent() {
   const [requests, setRequests] = useState<BalanceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -263,5 +264,12 @@ export default function BalanceRequestsPage() {
         </div>
       )}
     </div>
+  );
+}
+export default function BalanceRequestsPage() {
+  return (
+    <PermissionGuard permission="Users_Balance_Increase">
+      <BalanceRequestsPageContent />
+    </PermissionGuard>
   );
 }

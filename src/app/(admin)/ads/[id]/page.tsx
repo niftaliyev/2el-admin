@@ -6,8 +6,9 @@ import { AdminAd } from '@/types/admin';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
-export default function AdDetailPage({ params }: { params: Promise<{ id: string }> }) {
+function AdDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const id = unwrappedParams.id;
   const router = useRouter();
@@ -305,6 +306,14 @@ export default function AdDetailPage({ params }: { params: Promise<{ id: string 
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <PermissionGuard permission="Ads_View">
+      <AdDetailPageContent params={params} />
+    </PermissionGuard>
   );
 }
 

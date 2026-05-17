@@ -6,8 +6,9 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
-export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const id = unwrappedParams.id;
   const router = useRouter();
@@ -269,6 +270,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
     </div>
+  );
+}
+
+export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <PermissionGuard permission="Users_View">
+      <UserDetailPageContent params={params} />
+    </PermissionGuard>
   );
 }
 

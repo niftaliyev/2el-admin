@@ -41,8 +41,8 @@ export default function SignInForm() {
 
     try {
       const response = await promise;
-      const { accessToken, refreshToken, user } = response.data;
-      login(accessToken, refreshToken, user, isChecked);
+      const { accessToken, refreshToken, user, permissions } = response.data;
+      login(accessToken, refreshToken, user, isChecked, permissions ?? []);
       router.push("/");
     } catch (err: any) {
       setError(err.response?.data?.message || "Giriş zamanı xəta baş verdi. Məlumatları yoxlayın.");

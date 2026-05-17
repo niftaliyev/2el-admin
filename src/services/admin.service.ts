@@ -15,7 +15,8 @@ class AdminService {
         'pending': 0,
         'active': 1,
         'rejected': 3,
-        'expired': 2
+        'expired': 2,
+        'inactive': 2
       };
       if (statusMap[status] !== undefined) params.status = statusMap[status];
     }
@@ -169,7 +170,7 @@ class AdminService {
   }
 
   async updateSystemSettings(minStoreBalance: number): Promise<void> {
-    await api.post('/admin/system-settings', { minStoreBalance });
+    await api.post('/admin/system-min-store-balance', { minStoreBalance });
   }
 
   async getPaymentDetail(): Promise<{ content: string }> {
@@ -178,7 +179,7 @@ class AdminService {
   }
  
   async getMinStoreBalance(): Promise<number> {
-    const response = await api.get<{ minBalance: number }>('/admin/system-settings');
+    const response = await api.get<{ minBalance: number }>('/admin/system-min-store-balance');
     return response.data.minBalance;
   }
 

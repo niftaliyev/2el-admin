@@ -1,4 +1,5 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -60,8 +61,11 @@ function AdminUsersPageContent() {
     if (status && (status === 'all' || status === 'active' || status === 'blocked')) {
       setActiveTab(status);
     }
-    fetchRoles();
-  }, [searchParams]);
+    
+    if (currentUser?.roles?.includes('SuperAdmin') || currentUser?.roles?.includes('Admin')) {
+      fetchRoles();
+    }
+  }, [searchParams, currentUser]);
 
   useEffect(() => { fetchUsers(); }, [page, activeTab, searchQuery, sortBy, isAscending]);
 
@@ -451,7 +455,9 @@ export default function AdminUsersPage() {
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600"></div>
       </div>
     }>
-      <AdminUsersPageContent />
+      <PermissionGuard permission="Users_View">
+        <AdminUsersPageContent />
+      </PermissionGuard>
     </Suspense>
   );
 }
