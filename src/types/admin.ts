@@ -34,7 +34,7 @@ export interface AdminAd {
     name: string;
     email: string;
   };
-  status: 'active' | 'pending' | 'rejected' | 'expired';
+  status: 'active' | 'pending' | 'rejected' | 'expired' | 'inactive';
   isVip: boolean;
   isPremium: boolean;
   isFeatured: boolean;
@@ -42,6 +42,7 @@ export interface AdminAd {
   createdAt: string;
   viewCount: number;
   rejectionReason?: string;
+  isDeleted: boolean;
 }
 
 export interface DashboardStats {
@@ -58,7 +59,7 @@ export interface AdminReport {
   id: string;
   adId?: string;
   adTitle?: string;
-  adSlug?: string;
+  adPinCode?: number;
   storeInformationId?: string;
   storeName?: string;
   storeSlug?: string;

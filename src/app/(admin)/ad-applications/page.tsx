@@ -1,10 +1,11 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 
-export default function AdminAdApplicationsPage() {
+function AdminAdApplicationsPageContent() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
@@ -221,5 +222,12 @@ export default function AdminAdApplicationsPage() {
         </div>
       )}
     </div>
+  );
+}
+export default function AdminAdApplicationsPage() {
+  return (
+    <PermissionGuard permission="Banners_Manage">
+      <AdminAdApplicationsPageContent />
+    </PermissionGuard>
   );
 }

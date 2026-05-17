@@ -1,10 +1,11 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 
-export default function CompanySettingsPage() {
+function CompanySettingsPageContent() {
   const [settings, setSettings] = useState({
     companyName: '',
     address: '',
@@ -113,5 +114,12 @@ export default function CompanySettingsPage() {
         </form>
       </div>
     </div>
+  );
+}
+export default function CompanySettingsPage() {
+  return (
+    <PermissionGuard roles={["SuperAdmin", "Admin"]}>
+      <CompanySettingsPageContent />
+    </PermissionGuard>
   );
 }

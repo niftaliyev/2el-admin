@@ -1,4 +1,5 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useEffect, useState, useMemo } from 'react';
 import { adminService } from '@/services/admin.service';
@@ -8,7 +9,7 @@ import { ConfirmationModal } from '@/components/ui/modal';
 type DataType = 'cars' | 'phones';
 type BrandData = Record<string, string[]>;
 
-export default function SeedDataPage() {
+function SeedDataPageContent() {
   const [activeTab, setActiveTab] = useState<DataType>('cars');
   const [data, setData] = useState<BrandData>({});
   const [loading, setLoading] = useState(false);
@@ -645,4 +646,10 @@ function ModelItem({ name, onDelete, onEdit }: { name: string; onDelete: () => v
     </div>
   );
 }
-
+export default function SeedDataPage() {
+  return (
+    <PermissionGuard roles={["SuperAdmin", "Admin"]}>
+      <SeedDataPageContent />
+    </PermissionGuard>
+  );
+}

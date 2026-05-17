@@ -1,4 +1,5 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -364,7 +365,9 @@ export default function AdminReportsPage() {
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600"></div>
       </div>
     }>
-      <AdminReportsPageContent />
+      <PermissionGuard permission="Reports_View">
+        <AdminReportsPageContent />
+      </PermissionGuard>
     </Suspense>
   );
 }

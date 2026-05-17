@@ -1,4 +1,5 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useEffect, useState } from 'react';
 import { adminService } from '@/services/admin.service';
@@ -14,7 +15,7 @@ import { PencilIcon, TrashBinIcon, PlusIcon, FileIcon, InfoIcon, LockIcon } from
 
 type TabType = 'categories' | 'static' | 'legal' | 'privacy';
 
-export default function AdminHelpPage() {
+function AdminHelpPageContent() {
   const [activeTab, setActiveTab] = useState<TabType>('categories');
   const [loading, setLoading] = useState(true);
 
@@ -576,5 +577,12 @@ export default function AdminHelpPage() {
         message={confirmModal.message}
       />
     </div>
+  );
+}
+export default function AdminHelpPage() {
+  return (
+    <PermissionGuard roles={["SuperAdmin", "Admin"]}>
+      <AdminHelpPageContent />
+    </PermissionGuard>
   );
 }

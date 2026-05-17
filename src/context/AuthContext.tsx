@@ -13,8 +13,11 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  permissions: string[];
   loading: boolean;
-  login: (token: string, refreshToken: string, userData: User, rememberMe?: boolean) => void;
+  hasPermission: (permission: string) => boolean;
+  hasRole: (role: string) => boolean;
+  login: (token: string, refreshToken: string, userData: User, rememberMe?: boolean, permissions?: string[]) => void;
   logout: () => void;
   updateUser: (userData: User) => void;
 }
@@ -23,37 +26,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
-      // Check both storages
       const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-      
+
       if (token) {
         try {
-          // Fetch fresh user data from server on load
+          // Fetch fresh user data + permissions from server on load
           const response = await api.get("/admin/auth/me");
-          const userData = response.data;
+          const { data: userData, permissions: perms } = response.data;
           setUser(userData);
-          
-          if (localStorage.getItem("accessToken")) {
-            localStorage.setItem("user", JSON.stringify(userData));
-          } else {
-            sessionStorage.setItem("user", JSON.stringify(userData));
-          }
+          setPermissions(perms ?? []);
+
+          const storage = localStorage.getItem("accessToken") ? localStorage : sessionStorage;
+          storage.setItem("user", JSON.stringify(userData));
+          storage.setItem("permissions", JSON.stringify(perms ?? []));
         } catch (error) {
           console.error("Session verification failed", error);
-          // If verification fails, clear both
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
-          sessionStorage.removeItem("accessToken");
-          sessionStorage.removeItem("refreshToken");
-          sessionStorage.removeItem("user");
-          Cookies.remove("accessToken");
+          clearStorage();
           setUser(null);
+          setPermissions([]);
         }
       }
       setLoading(false);
@@ -62,17 +58,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, []);
 
-  const login = (token: string, refreshToken: string, userData: User, rememberMe: boolean = false) => {
+  const clearStorage = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("permissions");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("permissions");
+    Cookies.remove("accessToken");
+  };
+
+  const login = (
+    token: string,
+    refreshToken: string,
+    userData: User,
+    rememberMe: boolean = false,
+    perms: string[] = []
+  ) => {
     const storage = rememberMe ? localStorage : sessionStorage;
-    
+
     storage.setItem("accessToken", token);
     storage.setItem("refreshToken", refreshToken);
     storage.setItem("user", JSON.stringify(userData));
-    
-    // Set cookie expiry based on rememberMe
+    storage.setItem("permissions", JSON.stringify(perms));
+
     Cookies.set("accessToken", token, { expires: rememberMe ? 30 : undefined });
-    
+
     setUser(userData);
+    setPermissions(perms);
   };
 
   const logout = async () => {
@@ -87,14 +102,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("refreshToken");
-    sessionStorage.removeItem("user");
-    Cookies.remove("accessToken");
+    clearStorage();
     setUser(null);
+    setPermissions([]);
     router.push("/signin");
   };
 
@@ -107,8 +117,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(userData);
   };
 
+  const hasPermission = (permission: string): boolean => {
+    // SuperAdmin has all permissions
+    if (user?.roles?.includes("SuperAdmin")) return true;
+    return permissions.includes(permission);
+  };
+
+  const hasRole = (role: string): boolean => {
+    return user?.roles?.includes(role) ?? false;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, permissions, loading, hasPermission, hasRole, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

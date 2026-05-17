@@ -1,5 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
+import { getPermissionLabel } from './permissions';
 
 const api = axios.create({
   baseURL: 'http://84.247.184.186:5000/api',
@@ -38,6 +40,19 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Handle 403 Forbidden
+    if (error.response?.status === 403) {
+      const permission = error.response.data?.permission;
+      const permissionLabel = permission ? getPermissionLabel(permission) : '';
+      
+      const message = permissionLabel 
+        ? `Bu əməliyyatı yerinə yetirmək üçün icazəniz yoxdur. (${permissionLabel})`
+        : `Bu əməliyyatı yerinə yetirmək üçün icazəniz yoxdur.`;
+        
+      toast.error(message);
+      return Promise.reject(error);
+    }
 
     // If error is 401 and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {

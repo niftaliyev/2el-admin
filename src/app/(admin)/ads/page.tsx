@@ -7,13 +7,14 @@ import { AdminAd } from '@/types/admin';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 const AD_STATUSES = [
   { value: 'all', label: 'Hamısı', color: 'gray' },
   { value: 'pending', label: 'Gözləyir', color: 'yellow' },
   { value: 'active', label: 'Aktiv', color: 'green' },
   { value: 'rejected', label: 'Rədd edilib', color: 'red' },
-  { value: 'expired', label: 'Müddəti bitib', color: 'gray' },
+  { value: 'expired', label: 'Deaktiv / Müddəti bitib', color: 'gray' },
 ];
 
 const statusBadge = (status: string) => {
@@ -32,8 +33,8 @@ const statusLabel = (status: string) => {
     pending: 'Gözləyir',
     active: 'Aktiv',
     rejected: 'Rədd edilib',
-    expired: 'Müddəti bitib',
-    inactive: 'Müddəti bitib',
+    expired: 'Deaktiv / Müddəti bitib',
+    inactive: 'Deaktiv / Müddəti bitib',
   };
   return map[status] || status;
 };
@@ -268,9 +269,16 @@ function AdminAdsPageContent() {
                       <span className="text-sm font-bold text-gray-900 dark:text-white">{ad.price} {ad.currency}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge(ad.status)}`}>
-                        {statusLabel(ad.status)}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge(ad.status)}`}>
+                          {statusLabel(ad.status)}
+                        </span>
+                        {ad.isDeleted && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-error-100 text-error-600 dark:bg-error-900/20 dark:text-error-400 border border-error-200 dark:border-error-800">
+                            SİLİNİB
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -397,7 +405,10 @@ export default function AdminAdsPage() {
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600"></div>
       </div>
     }>
-      <AdminAdsPageContent />
+      <PermissionGuard permission="Ads_View">
+        <AdminAdsPageContent />
+      </PermissionGuard>
     </Suspense>
   );
 }
+

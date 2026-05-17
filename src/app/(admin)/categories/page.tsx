@@ -1,4 +1,5 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
@@ -50,7 +51,7 @@ interface Category {
   fieldCount: number;
 }
 
-export default function CategoriesPage() {
+function CategoriesPageContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -784,5 +785,12 @@ export default function CategoriesPage() {
         message={confirmModal.message}
       />
     </div>
+  );
+}
+export default function CategoriesPage() {
+  return (
+    <PermissionGuard permission="Categories_Manage">
+      <CategoriesPageContent />
+    </PermissionGuard>
   );
 }

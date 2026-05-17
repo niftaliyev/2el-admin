@@ -1,10 +1,11 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 
-export default function AdminPaymentDetailsPage() {
+function AdminPaymentDetailsPageContent() {
   const [content, setContent] = useState('');
   const [minBalance, setMinBalance] = useState<number>(50);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,5 +151,12 @@ export default function AdminPaymentDetailsPage() {
         </div>
       </div>
     </div>
+  );
+}
+export default function AdminPaymentDetailsPage() {
+  return (
+    <PermissionGuard roles={["SuperAdmin", "Admin"]}>
+      <AdminPaymentDetailsPageContent />
+    </PermissionGuard>
   );
 }

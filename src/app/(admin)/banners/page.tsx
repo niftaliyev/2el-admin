@@ -1,11 +1,12 @@
 'use client';
+import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 import { ConfirmationModal } from '@/components/ui/modal';
 
-export default function AdminBannersPage() {
+function AdminBannersPageContent() {
   const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -525,5 +526,12 @@ export default function AdminBannersPage() {
         message={confirmModal.message}
       />
     </div>
+  );
+}
+export default function AdminBannersPage() {
+  return (
+    <PermissionGuard permission="Banners_Manage">
+      <AdminBannersPageContent />
+    </PermissionGuard>
   );
 }
