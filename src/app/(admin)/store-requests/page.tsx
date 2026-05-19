@@ -70,7 +70,7 @@ function AdminStoreRequestsPageContent() {
       );
       
       setRequests(response.data.data ?? []);
-      setTotalElements(response.data.totalElements ?? 0);
+      setTotalElements(response.data.totalCount ?? response.data.totalElements ?? 0);
     } catch {
       toast.error('Sorğuları yükləmək mümkün olmadı');
     } finally {

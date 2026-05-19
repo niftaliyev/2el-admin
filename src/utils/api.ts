@@ -45,11 +45,11 @@ api.interceptors.response.use(
     if (error.response?.status === 403) {
       const permission = error.response.data?.permission;
       const permissionLabel = permission ? getPermissionLabel(permission) : '';
-      
-      const message = permissionLabel 
+
+      const message = permissionLabel
         ? `Bu əməliyyatı yerinə yetirmək üçün icazəniz yoxdur. (${permissionLabel})`
         : `Bu əməliyyatı yerinə yetirmək üçün icazəniz yoxdur.`;
-        
+
       toast.error(message);
       return Promise.reject(error);
     }
@@ -89,7 +89,7 @@ api.interceptors.response.use(
 
         storage.setItem('accessToken', newAccessToken);
         storage.setItem('refreshToken', newRefreshToken);
-        
+
         // Update cookie with same persistence as before
         const isPersistent = !!localStorage.getItem('accessToken');
         Cookies.set('accessToken', newAccessToken, { expires: isPersistent ? 30 : undefined });
@@ -114,6 +114,31 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
+    // Handle other errors
+    if (error.response) {
+      const data = error.response.data as any;
+      let message = 'Bir xəta baş verdi';
+
+      if (data && typeof data === 'object') {
+        if (data.errors) {
+          message = Object.values(data.errors).flat().join(', ');
+          (error as any).validationErrors = data.errors;
+        } else {
+          message = data.message || data.Message || data.title || data.Title || 'Bir xəta baş verdi';
+        }
+      } else if (typeof data === 'string') {
+        message = data;
+      }
+
+      error.message = message;
+      if (error.response.data && typeof error.response.data === 'object') {
+        error.response.data.message = message;
+      }
+    } else if (error.request) {
+      error.message = 'Serverə qoşulmaq mümkün olmadı';
+    }
+
     return Promise.reject(error);
   }
 );
