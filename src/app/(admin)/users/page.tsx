@@ -84,8 +84,8 @@ function AdminUsersPageContent() {
       const data = await adminService.getUsers(page, 10, activeTab, searchQuery, sortBy, isAscending);
       setUsers(data.data);
       setTotalPages(data.totalPages);
-    } catch {
-      toast.error('İstifadəçiləri yükləyərkən xəta baş verdi');
+    } catch (err: any) {
+      toast.error(err.message || 'İstifadəçiləri yükləyərkən xəta baş verdi');
     } finally {
       setLoading(false);
     }
@@ -106,8 +106,8 @@ function AdminUsersPageContent() {
       toast.success('Əməliyyat uğurla tamamlandı');
       setModalState({ isOpen: false, action: 'block', user: null });
       fetchUsers();
-    } catch {
-      toast.error('Xəta baş verdi');
+    } catch (err: any) {
+      toast.error(err.message || 'Xəta baş verdi');
     }
   };
 
@@ -119,8 +119,8 @@ function AdminUsersPageContent() {
       toast.success('Toplu əməliyyat tamamlandı');
       setSelectedIds([]);
       fetchUsers();
-    } catch {
-      toast.error('Xəta baş verdi');
+    } catch (err: any) {
+      toast.error(err.message || 'Xəta baş verdi');
     }
   };
 
@@ -131,8 +131,8 @@ function AdminUsersPageContent() {
       toast.success('Rollar yeniləndi');
       setRoleModal({ isOpen: false, user: null, selectedRoles: [] });
       fetchUsers();
-    } catch {
-      toast.error('Rollar yenilənərkən xəta baş verdi');
+    } catch (err: any) {
+      toast.error(err.message || 'Rollar yenilənərkən xəta baş verdi');
     }
   };
 
