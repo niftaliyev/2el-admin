@@ -78,7 +78,7 @@ function CategoriesPageContent() {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   useEffect(() => {
@@ -577,8 +577,8 @@ function CategoriesPageContent() {
                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400">
                       <GridIcon className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-bold text-gray-500">Fayl seçin (SVG, PNG, JPG)</span>
-                    <input type="file" name="image" accept="image/*" className="hidden" />
+                    <span className="text-xs font-bold text-gray-500">Fayl seçin (SVG, PNG, JPG, WEBP, JPEG)</span>
+                    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp,.svg" className="hidden" />
                   </label>
                 </div>
               </div>

@@ -241,43 +241,43 @@ function AdminHelpPageContent() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Yardım və Səhifələr</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Bütün yardım menyularını və hüquqi sənədləri idarə edin</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full md:w-auto">
           {activeTab === 'categories' && (
-            <Button size="sm" onClick={() => { setEditingCategory({ displayOrder: 0 }); setIsCategoryModalOpen(true); }}>Yeni Kateqoriya</Button>
+            <Button size="sm" className="w-full md:w-auto text-center justify-center flex" onClick={() => { setEditingCategory({ displayOrder: 0 }); setIsCategoryModalOpen(true); }}>Yeni Kateqoriya</Button>
           )}
           {activeTab === 'static' && (
-            <Button size="sm" onClick={() => { setEditingStatic({ displayOrder: 0 }); setIsStaticModalOpen(true); }}>Yeni Səhifə</Button>
+            <Button size="sm" className="w-full md:w-auto text-center justify-center flex" onClick={() => { setEditingStatic({ displayOrder: 0 }); setIsStaticModalOpen(true); }}>Yeni Səhifə</Button>
           )}
           {activeTab === 'legal' && (
-            <Button size="sm" onClick={() => { setEditingLegal({ displayOrder: 0 }); setIsLegalModalOpen(true); }}>Yeni Hüquqi Sənəd</Button>
+            <Button size="sm" className="w-full md:w-auto text-center justify-center flex" onClick={() => { setEditingLegal({ displayOrder: 0 }); setIsLegalModalOpen(true); }}>Yeni Hüquqi Sənəd</Button>
           )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-fit overflow-x-auto">
+      <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-full overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as TabType)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+            className={`flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
           >
-            <span className="w-4 h-4">{tab.icon}</span>
+            <span className="w-4 h-4 flex-shrink-0">{tab.icon}</span>
             {tab.label}
           </button>
         ))}
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 min-h-[400px]">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 sm:p-6 min-h-[400px]">
         {activeTab === 'categories' && (
           <div className="space-y-6">
             {categories.map((category) => (
               <div key={category.id} className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-                <div className="bg-gray-50 dark:bg-gray-800/50 px-5 py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
+                <div className="bg-gray-50 dark:bg-gray-800/50 px-3 sm:px-5 py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border-b border-gray-200 dark:border-gray-800">
                   <div className="flex items-center gap-3">
                     <div>
                       <h2 className="font-bold text-gray-900 dark:text-white">{category.name}</h2>
@@ -300,7 +300,7 @@ function AdminHelpPageContent() {
                           <p className="text-[11px] text-gray-500 dark:text-gray-400 italic mb-1">{item.questionRu}</p>
                           <div className="text-xs text-gray-500 dark:text-gray-300 mt-1 line-clamp-1" dangerouslySetInnerHTML={{ __html: item.answer }} />
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                           <button onClick={() => { setEditingItem({ ...item, categoryId: category.id }); setIsItemModalOpen(true); }} className="p-1.5 rounded-lg text-brand-500 hover:bg-white dark:hover:bg-gray-700 shadow-sm"><PencilIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDeleteItem(item.id)} className="p-1.5 rounded-lg text-error-500 hover:bg-white dark:hover:bg-gray-700 shadow-sm"><TrashBinIcon className="w-3.5 h-3.5" /></button>
                         </div>
@@ -330,7 +330,7 @@ function AdminHelpPageContent() {
                     <p className="text-xs text-gray-500">{page.titleRu}</p>
                     <p className="text-xs text-brand-500 font-medium mt-1">/{page.slug}</p>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button onClick={() => { setEditingStatic(page); setIsStaticModalOpen(true); }} className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"><PencilIcon className="w-4 h-4" /></button>
                     <button onClick={() => handleDeleteStatic(page.id)} className="p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20"><TrashBinIcon className="w-4 h-4" /></button>
                   </div>
@@ -343,13 +343,13 @@ function AdminHelpPageContent() {
         {activeTab === 'legal' && (
           <div className="space-y-3">
             {legalPolicies.map(policy => (
-              <div key={policy.id} className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 dark:hover:border-brand-500 transition-all group flex justify-between items-center">
+              <div key={policy.id} className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 dark:hover:border-brand-500 transition-all group flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                 <div>
                   <h3 className="font-bold text-gray-900 dark:text-white">{policy.title}</h3>
                   <p className="text-xs text-gray-500">{policy.titleRu}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Versiya: {policy.version} • Tarix: {new Date(policy.effectiveDate).toLocaleDateString('az-AZ')}</p>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                   <button onClick={() => { setEditingLegal(policy); setIsLegalModalOpen(true); }} className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"><PencilIcon className="w-4 h-4" /></button>
                   <button onClick={() => handleDeleteLegal(policy.id)} className="p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20"><TrashBinIcon className="w-4 h-4" /></button>
                 </div>
@@ -362,14 +362,14 @@ function AdminHelpPageContent() {
           <div className="max-w-3xl mx-auto py-4">
             {privacyPolicy ? (
               <div className="space-y-6">
-                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">{privacyPolicy.title}</h2>
                     <p className="text-sm text-gray-500 italic">{privacyPolicy.titleRu}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Son yenilənmə: {new Date(privacyPolicy.effectiveDate).toLocaleDateString('az-AZ')}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => { setEditingPrivacy(privacyPolicy); setIsPrivacyModalOpen(true); }}>Redaktə</Button>
+                    <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => { setEditingPrivacy(privacyPolicy); setIsPrivacyModalOpen(true); }}>Redaktə</Button>
                   </div>
                 </div>
                 <div className="prose dark:prose-invert max-w-none p-6 rounded-2xl border border-gray-100 dark:border-gray-800 line-clamp-[15] text-sm text-gray-700 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: privacyPolicy.content }} />
@@ -388,7 +388,7 @@ function AdminHelpPageContent() {
       {/* Modals */}
       <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Kateqoriya" className="max-w-[500px]">
         <form onSubmit={handleSaveCategory} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="catName">Ad (AZ)</Label>
               <Input id="catName" required value={editingCategory?.name || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingCategory({ ...editingCategory, name: e.target.value })} />
@@ -408,7 +408,7 @@ function AdminHelpPageContent() {
 
       <Modal isOpen={isItemModalOpen} onClose={() => setIsItemModalOpen(false)} title="Sual-Cavab" className="max-w-[600px]">
         <form onSubmit={handleSaveItem} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="itemQ">Sual (AZ)</Label>
               <Input id="itemQ" required value={editingItem?.question || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingItem({ ...editingItem, question: e.target.value })} />
@@ -444,7 +444,7 @@ function AdminHelpPageContent() {
 
       <Modal isOpen={isStaticModalOpen} onClose={() => setIsStaticModalOpen(false)} title="Statik Səhifə" className="max-w-[700px]">
         <form onSubmit={handleSaveStatic} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="stTitle">Başlıq (AZ)</Label>
               <Input id="stTitle" required value={editingStatic?.title || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingStatic({ ...editingStatic, title: e.target.value })} />
@@ -483,8 +483,8 @@ function AdminHelpPageContent() {
       </Modal>
 
       <Modal isOpen={isLegalModalOpen} onClose={() => setIsLegalModalOpen(false)} title="Hüquqi Sənəd" className="max-w-[800px]">
-        <form onSubmit={handleSaveLegal} className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSaveLegal} className="space-y-4 px-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="lgTitle">Başlıq (AZ)</Label>
               <Input id="lgTitle" required value={editingLegal?.title || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingLegal({ ...editingLegal, title: e.target.value })} />
@@ -498,7 +498,7 @@ function AdminHelpPageContent() {
             <Label htmlFor="lgSlug">Slug</Label>
             <Input id="lgSlug" required value={editingLegal?.slug || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingLegal({ ...editingLegal, slug: e.target.value })} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="lgVer">Versiya</Label>
               <Input id="lgVer" value={editingLegal?.version || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingLegal({ ...editingLegal, version: e.target.value })} />
@@ -534,7 +534,7 @@ function AdminHelpPageContent() {
 
       <Modal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} title="Məxfilik Siyasəti" className="max-w-[800px]">
         <form onSubmit={handleSavePrivacy} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="prTitle">Başlıq (AZ)</Label>
               <Input id="prTitle" required value={editingPrivacy?.title || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingPrivacy({ ...editingPrivacy, title: e.target.value })} />

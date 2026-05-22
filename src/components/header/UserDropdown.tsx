@@ -24,8 +24,16 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         onClick={toggleDropdown} 
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-brand-500 font-bold border border-gray-200 dark:border-gray-700">
-          {user?.fullName?.charAt(0).toUpperCase() || "A"}
+        <span className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-brand-500 font-bold border border-gray-200 dark:border-gray-700 flex-shrink-0">
+          {user?.profilePhoto ? (
+            <img
+              src={user.profilePhoto}
+              alt={user.fullName || 'Admin'}
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            user?.fullName?.charAt(0).toUpperCase() || 'A'
+          )}
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">{user?.fullName || "Admin"}</span>
