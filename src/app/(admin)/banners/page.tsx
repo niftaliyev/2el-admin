@@ -349,7 +349,7 @@ function AdminBannersPageContent() {
                           <img src={selectedBanner.imageUrl} alt="" className="w-full h-full object-cover" />
                         </div>
                       )}
-                      <input type="file" name="imageFile" accept="image/*" className="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-brand-500 file:text-white hover:file:bg-brand-600 transition-all cursor-pointer" />
+                      <input type="file" name="imageFile" accept=".jpg,.jpeg,.png,.webp,.gif" className="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-brand-500 file:text-white hover:file:bg-brand-600 transition-all cursor-pointer" />
                       <p className="text-[10px] text-gray-400 mt-2 italic">Əgər aşağıda reklam kodu daxil edəcəksinizsə, şəkil yükləmək məcburi deyil.</p>
                     </div>
 

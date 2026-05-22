@@ -189,26 +189,52 @@ function BalanceRequestsPageContent() {
                <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-success-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
               {selectedRequest.image ? (
-                <div className="relative group/img z-10">
-                  <img 
-                    src={selectedRequest.image} 
-                    alt="Receipt" 
-                    className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-4 border-white dark:border-gray-800 transition-all duration-500 hover:scale-[1.02]"
-                  />
-                  <div className="absolute inset-0 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 pointer-events-none"></div>
-                  
-                  <a 
-                    href={selectedRequest.image} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="absolute top-4 right-4 p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-2xl shadow-xl opacity-0 group-hover/img:opacity-100 transition-all duration-300 hover:bg-white dark:hover:bg-gray-900 hover:scale-110 border border-gray-100 dark:border-gray-800"
-                    title="Tam ölçüdə bax"
-                  >
-                    <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
+                selectedRequest.image.toLowerCase().includes('.pdf') ? (
+                  <div className="relative z-10 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-150 dark:border-gray-850 max-w-md w-full text-center">
+                    <div className="w-20 h-20 bg-red-50 dark:bg-red-950/30 rounded-3xl flex items-center justify-center mb-5 mx-auto border border-red-100 dark:border-red-900/50 animate-bounce">
+                      <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 9h1.5m-1.5 3h4m-4 3h4" />
+                      </svg>
+                    </div>
+                    <h4 className="text-base font-bold text-gray-900 dark:text-white mb-2">PDF Sənəd formatında Qəbz</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                      İstifadəçi qəbzi PDF formatında yükləmişdir. Sənədə baxmaq, yükləmək və ya çap etmək üçün yeni pəncərədə açın.
+                    </p>
+                    <a 
+                      href={selectedRequest.image} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-brand-500/20 active:scale-[0.98] cursor-pointer"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      Qəbzə yeni tabda bax
+                    </a>
+                  </div>
+                ) : (
+                  <div className="relative group/img z-10">
+                    <img 
+                      src={selectedRequest.image} 
+                      alt="Receipt" 
+                      className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-4 border-white dark:border-gray-800 transition-all duration-500 hover:scale-[1.02]"
+                    />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 pointer-events-none"></div>
+                    
+                    <a 
+                      href={selectedRequest.image} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="absolute top-4 right-4 p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-2xl shadow-xl opacity-0 group-hover/img:opacity-100 transition-all duration-300 hover:bg-white dark:hover:bg-gray-900 hover:scale-110 border border-gray-100 dark:border-gray-800"
+                      title="Tam ölçüdə bax"
+                    >
+                      <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                )
               ) : (
                 <div className="text-center relative z-10">
                   <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-gray-700">

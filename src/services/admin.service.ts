@@ -203,6 +203,21 @@ class AdminService {
     return response.data ?? [];
   }
 
+  // ── Regular Service Packages (VIP, Premium, Boost) ────────────────────────
+
+  async getAdminPackages(): Promise<any[]> {
+    const response = await api.get<any[]>('/admin/packages');
+    return response.data ?? [];
+  }
+
+  async upsertPackage(pkg: any): Promise<void> {
+    await api.post('/admin/packages', pkg);
+  }
+
+  async deletePackage(id: string): Promise<void> {
+    await api.delete(`/admin/packages/${id}`);
+  }
+
   // ── Company Settings ──────────────────────────────────────────────────────
 
   async getCompanySettings(): Promise<any> {
