@@ -6,6 +6,11 @@ class AdminService {
     return response.data;
   }
 
+  async getTrafficStats(days = 30): Promise<any> {
+    const response = await api.get('/admin/stats/traffic', { params: { days } });
+    return response.data;
+  }
+
   // ── Ads ───────────────────────────────────────────────────────────────────
 
   async getAds(page = 1, pageSize = 10, status?: string, searchTerm?: string, sortBy?: string, isAscending?: boolean): Promise<any> {
