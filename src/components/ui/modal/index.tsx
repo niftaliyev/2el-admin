@@ -57,7 +57,7 @@ export const Modal: React.FC<ModalProps> = ({
     : "relative w-full rounded-3xl bg-white dark:bg-gray-900 shadow-2xl";
 
   return (
-    <div className="fixed inset-0 flex items-end sm:items-center justify-center modal z-99999 p-0 sm:p-4">
+    <div className="fixed inset-0 flex items-end sm:items-center justify-center modal z-[99999999] p-0 sm:p-4">
       {!isFullscreen && (
         <div
           className="fixed inset-0 h-full w-full bg-gray-400/20 backdrop-blur-sm"

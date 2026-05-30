@@ -422,6 +422,10 @@ class AdminService {
     const response = await api.get<any[]>('/lookup/cities');
     return response.data ?? [];
   }
+
+  async sendNotification(dto: { userId?: string; title: string; text: string; link?: string; notificationType: number }): Promise<void> {
+    await api.post('/admin/send-notification', dto);
+  }
 }
 
 export const adminService = new AdminService();
