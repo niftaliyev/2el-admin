@@ -291,10 +291,10 @@ function CategoriesPageContent() {
     return (
       <div key={cat.id} className="w-full">
         <div
-          className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl transition-all duration-300 border group
+          className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl transition-all duration-300 border group [--indent-gap:12px] sm:[--indent-gap:28px]
             ${isExpanded ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-100 dark:border-brand-900/30' : 'bg-white dark:bg-gray-900/50 border-gray-100 dark:border-gray-800'}
             hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-none hover:border-brand-200 dark:hover:border-brand-800/50 mb-2`}
-          style={{ marginLeft: `${level * (typeof window !== 'undefined' && window.innerWidth < 640 ? 12 : 28)}px` }}
+          style={{ marginLeft: `calc(var(--indent-gap) * ${level})` }}
         >
           <div className="flex items-center gap-4 flex-1">
             <button
@@ -422,7 +422,7 @@ function CategoriesPageContent() {
                     {sub.nameRu && <p className="text-[10px] font-medium text-gray-500 truncate italic">{sub.nameRu}</p>}
                   </div>
                 </div>
-                <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 group-hover/sub:opacity-100 transition-opacity pr-2 border-t sm:border-t-0 border-gray-100 dark:border-gray-800 pt-2 sm:pt-0">
+                <div className="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover/sub:opacity-100 transition-opacity pr-2 border-t lg:border-t-0 border-gray-100 dark:border-gray-800 pt-2 lg:pt-0">
                   <button
                     onClick={() => {
                       setModalType('subcategory');
@@ -530,11 +530,11 @@ function CategoriesPageContent() {
 
       {/* Upsert Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-950/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => !isProcessing && setIsModalOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-900 w-full max-w-3xl rounded-[2.5rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] border border-white/10 dark:border-gray-800 overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 max-h-[90vh]">
+          <div className="relative bg-white dark:bg-gray-900 w-full max-w-3xl rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] border border-white/10 dark:border-gray-800 overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 max-h-[90vh]">
             {/* Modal Header */}
-            <div className="px-10 py-8 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/30">
+            <div className="px-6 py-6 sm:px-10 sm:py-8 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/30">
               <div>
                 <h3 className="text-2xl font-black text-gray-900 dark:text-white">
                   {selectedItem ? 'Məlumatı Redaktə Et' : 'Yeni Məlumat Əlavə Et'}
@@ -551,7 +551,7 @@ function CategoriesPageContent() {
               </button>
             </div>
 
-            <form key={selectedItem?.id || 'new'} onSubmit={handleSave} className="flex-1 overflow-y-auto p-10 space-y-8 no-scrollbar">
+            <form key={selectedItem?.id || 'new'} onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 no-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <label className={labelClass}>Ad (Azərbaycan)</label>
@@ -633,10 +633,10 @@ function CategoriesPageContent() {
 
       {/* Category Fields Modal */}
       {isFieldsModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => !isProcessing && setIsFieldsModalOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-900 w-full max-w-5xl rounded-[3rem] shadow-2xl border border-white/5 dark:border-gray-800 max-h-[90vh] overflow-hidden flex flex-col animate-in slide-in-from-right-10 duration-500">
-            <div className="px-10 py-8 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/30">
+          <div className="relative bg-white dark:bg-gray-900 w-full max-w-5xl rounded-[1.5rem] sm:rounded-[3rem] shadow-2xl border border-white/5 dark:border-gray-800 max-h-[90vh] overflow-hidden flex flex-col animate-in slide-in-from-right-10 duration-500">
+            <div className="px-6 py-6 sm:px-10 sm:py-8 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/30">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-2xl bg-brand-500 text-white shadow-lg shadow-brand-500/20">
                   <DocsIcon className="w-6 h-6" />
@@ -654,12 +654,12 @@ function CategoriesPageContent() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-10 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-6 sm:p-10 no-scrollbar">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 {/* Form Section */}
                 <div className="lg:col-span-5">
                   <div className="sticky top-0 space-y-6">
-                    <div className="p-8 rounded-[2rem] bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 shadow-inner">
+                    <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 shadow-inner">
                       <h4 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <span className="w-2 h-6 bg-brand-500 rounded-full"></span>
                         {selectedField ? 'Sahəni Redaktə Et' : 'Yeni Sahə Əlavə Et'}
@@ -757,7 +757,7 @@ function CategoriesPageContent() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 transition-opacity">
                             <button onClick={() => setSelectedField(field)} className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-400 hover:text-brand-500 hover:bg-white dark:hover:bg-gray-700 shadow-sm transition-all">
                               <PencilIcon className="w-5 h-5" />
                             </button>

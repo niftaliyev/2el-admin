@@ -1,6 +1,6 @@
 "use client";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
-import NotificationDropdown from "@/components/header/NotificationDropdown";
+
 import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
@@ -124,6 +124,27 @@ const AppHeader: React.FC = () => {
           </Link>
 
           <button
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="flex items-center justify-center w-10 h-10 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden ml-auto"
+            aria-label="Axtar"
+          >
+            <svg
+              className="w-5.5 h-5.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </button>
+
+          <button
             onClick={toggleApplicationMenu}
             className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
           >
@@ -195,8 +216,7 @@ const AppHeader: React.FC = () => {
             <ThemeToggleButton />
             {/* <!-- Dark Mode Toggler --> */}
 
-           <NotificationDropdown /> 
-            {/* <!-- Notification Menu Area --> */}
+
           </div>
           {/* <!-- User Area --> */}
           <UserDropdown /> 

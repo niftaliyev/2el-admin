@@ -89,6 +89,17 @@ const navItems: NavItem[] = [
     path: "/categories",
     permission: "Categories_Manage",
   },
+  {
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+    ),
+    name: "Bildiriş Göndər",
+    path: "/notifications",
+    roles: ["SuperAdmin", "Admin"],
+  },
 ];
 
 const othersItems: NavItem[] = [
@@ -101,10 +112,10 @@ const othersItems: NavItem[] = [
   {
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91-.79-.79-2.08-.8-2.91-.09z"/>
-        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
-        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
-        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91-.79-.79-2.08-.8-2.91-.09z" />
+        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
       </svg>
     ),
     name: "Ödənişli Xidmətlər",
@@ -159,8 +170,8 @@ const AppSidebar: React.FC = () => {
                 <button
                   onClick={() => handleSubmenuToggle(index, menuType)}
                   className={`menu-item group  ${openSubmenu?.type === menuType && openSubmenu?.index === index
-                      ? "menu-item-active"
-                      : "menu-item-inactive"
+                    ? "menu-item-active"
+                    : "menu-item-inactive"
                     } cursor-pointer ${!isExpanded && !isHovered
                       ? "lg:justify-center"
                       : "lg:justify-start"
@@ -168,8 +179,8 @@ const AppSidebar: React.FC = () => {
                 >
                   <span
                     className={` ${openSubmenu?.type === menuType && openSubmenu?.index === index
-                        ? "menu-item-icon-active"
-                        : "menu-item-icon-inactive"
+                      ? "menu-item-icon-active"
+                      : "menu-item-icon-inactive"
                       }`}
                   >
                     {nav.icon}
@@ -180,9 +191,9 @@ const AppSidebar: React.FC = () => {
                   {(isExpanded || isHovered || isMobileOpen) && (
                     <ChevronDownIcon
                       className={`ml-auto w-5 h-5 transition-transform duration-200  ${openSubmenu?.type === menuType &&
-                          openSubmenu?.index === index
-                          ? "rotate-180 text-brand-500"
-                          : ""
+                        openSubmenu?.index === index
+                        ? "rotate-180 text-brand-500"
+                        : ""
                         }`}
                     />
                   )}
@@ -191,13 +202,14 @@ const AppSidebar: React.FC = () => {
                 nav.path && (
                   <Link
                     href={nav.path}
+                    onClick={() => isMobileOpen && toggleMobileSidebar()}
                     className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                       }`}
                   >
                     <span
                       className={`${isActive(nav.path)
-                          ? "menu-item-icon-active"
-                          : "menu-item-icon-inactive"
+                        ? "menu-item-icon-active"
+                        : "menu-item-icon-inactive"
                         }`}
                     >
                       {nav.icon}
@@ -226,9 +238,10 @@ const AppSidebar: React.FC = () => {
                       <li key={subItem.name}>
                         <Link
                           href={subItem.path}
+                          onClick={() => isMobileOpen && toggleMobileSidebar()}
                           className={`menu-dropdown-item ${isActive(subItem.path)
-                              ? "menu-dropdown-item-active"
-                              : "menu-dropdown-item-inactive"
+                            ? "menu-dropdown-item-active"
+                            : "menu-dropdown-item-inactive"
                             }`}
                         >
                           {subItem.name}
@@ -236,8 +249,8 @@ const AppSidebar: React.FC = () => {
                             {subItem.new && (
                               <span
                                 className={`ml-auto ${isActive(subItem.path)
-                                    ? "menu-dropdown-badge-active"
-                                    : "menu-dropdown-badge-inactive"
+                                  ? "menu-dropdown-badge-active"
+                                  : "menu-dropdown-badge-inactive"
                                   } menu-dropdown-badge `}
                               >
                                 new
@@ -246,8 +259,8 @@ const AppSidebar: React.FC = () => {
                             {subItem.pro && (
                               <span
                                 className={`ml-auto ${isActive(subItem.path)
-                                    ? "menu-dropdown-badge-active"
-                                    : "menu-dropdown-badge-inactive"
+                                  ? "menu-dropdown-badge-active"
+                                  : "menu-dropdown-badge-inactive"
                                   } menu-dropdown-badge `}
                               >
                                 pro
@@ -333,7 +346,7 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed flex flex-col top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-999999 border-r border-gray-200 
+      className={`fixed flex flex-col top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen h-[100dvh] transition-all duration-300 ease-in-out z-999999 border-r border-gray-200 
         ${isExpanded || isMobileOpen
           ? "w-[290px]"
           : isHovered
@@ -349,7 +362,7 @@ const AppSidebar: React.FC = () => {
         className={`py-8 flex items-center justify-between ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
           }`}
       >
-        <Link href="/">
+        <Link href="/" onClick={() => isMobileOpen && toggleMobileSidebar()}>
           {isExpanded || isHovered || isMobileOpen ? (
             <div className="flex items-center gap-1.5">
               <span className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white">
@@ -391,14 +404,14 @@ const AppSidebar: React.FC = () => {
           </button>
         )}
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
+                  ? "lg:justify-center"
+                  : "justify-start"
                   }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
@@ -413,8 +426,8 @@ const AppSidebar: React.FC = () => {
             <div className="">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
+                  ? "lg:justify-center"
+                  : "justify-start"
                   }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
