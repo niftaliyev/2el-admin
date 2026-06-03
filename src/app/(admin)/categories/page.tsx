@@ -2,6 +2,13 @@
 import PermissionGuard from '@/components/auth/PermissionGuard';
 
 import { useState, useEffect } from 'react';
+
+const getImageUrl = (path: string | null | undefined): string => {
+  if (!path || !path.trim()) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) return path;
+  const baseUrl = 'http://84.247.184.186:5000';
+  return `${baseUrl}/${path.replace(/\\/g, '/').replace(/^\//, '')}`;
+};
 import { adminService } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 import {
@@ -61,6 +68,21 @@ function CategoriesPageContent() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [parentId, setParentId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Logo Preview/Upload States
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+
+  useEffect(() => {
+    if (isModalOpen) {
+      if (selectedItem) {
+        setImagePreview(selectedItem.imageUrl || '');
+      } else {
+        setImagePreview('');
+      }
+      setSelectedFile(null);
+    }
+  }, [isModalOpen, selectedItem]);
 
   // Category Fields State
   const [isFieldsModalOpen, setIsFieldsModalOpen] = useState(false);
@@ -174,7 +196,8 @@ function CategoriesPageContent() {
       name: formData.get('name'),
       nameRu: formData.get('nameRu'),
       slug: formData.get('slug'),
-      image: (e.currentTarget.querySelector('input[name="image"]') as HTMLInputElement).files?.[0],
+      image: selectedFile,
+      imageUrl: imagePreview.startsWith('blob:') ? '' : imagePreview,
     };
 
     try {
@@ -309,7 +332,7 @@ function CategoriesPageContent() {
             <div className="relative group/img">
               <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 border-2 border-white dark:border-gray-700 shadow-sm overflow-hidden flex-shrink-0 transition-transform group-hover/img:scale-110">
                 {cat.imageUrl ? (
-                  <img src={cat.imageUrl} alt="" className="w-full h-full object-contain p-2" />
+                  <img src={getImageUrl(cat.imageUrl)} alt="" className="w-full h-full object-contain p-2" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
                     <GridIcon className="w-6 h-6" />
@@ -400,14 +423,14 @@ function CategoriesPageContent() {
             {/* Decorative curves for hierarchy visibility */}
             <div className="absolute top-0 left-0 w-8 h-8 border-b-2 border-l-0 border-gray-100 dark:border-gray-800/50 rounded-bl-3xl -translate-x-[2px] -translate-y-8"></div>
 
-            {cat.children?.map(child => renderCategoryRow(child, 0))}
+            {cat.children?.map(child => renderCategoryRow(child, level + 1))}
 
             {cat.subCategories?.map(sub => (
               <div key={sub.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 rounded-2xl bg-gray-50/50 dark:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all group/sub shadow-sm hover:shadow-md">
                 <div className="flex items-center gap-4 flex-1">
                   <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 overflow-hidden flex-shrink-0 shadow-inner">
                     {sub.imageUrl ? (
-                      <img src={sub.imageUrl} alt="" className="w-full h-full object-contain p-2" />
+                      <img src={getImageUrl(sub.imageUrl)} alt="" className="w-full h-full object-contain p-2" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
                         <HorizontaLDots className="w-4 h-4" />
@@ -573,13 +596,46 @@ function CategoriesPageContent() {
                 </div>
                 <div className="space-y-2">
                   <label className={labelClass}>Şəkil / Icon</label>
-                  <label className="flex items-center gap-4 p-3 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30 cursor-pointer hover:border-brand-500 transition-all">
-                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400">
-                      <GridIcon className="w-5 h-5" />
-                    </div>
-                    <span className="text-xs font-bold text-gray-500">Fayl seçin (SVG, PNG, JPG, WEBP, JPEG)</span>
-                    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp,.svg" className="hidden" />
-                  </label>
+                  <div className="flex items-center gap-4">
+                    {imagePreview && (
+                      <div className="w-16 h-16 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0 relative group shadow-sm">
+                        <img src={getImageUrl(imagePreview)} alt="Preview" className="w-full h-full object-contain p-1" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImagePreview('');
+                            setSelectedFile(null);
+                            const fileInput = document.querySelector('input[name="image"]') as HTMLInputElement;
+                            if (fileInput) fileInput.value = '';
+                          }}
+                          className="absolute inset-0 bg-black/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+                        >
+                          <TrashBinIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+                    <label className="flex-1 flex items-center gap-4 p-3 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30 cursor-pointer hover:border-brand-500 transition-all">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                        <GridIcon className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-gray-500 truncate max-w-[200px] sm:max-w-xs">
+                        {selectedFile ? selectedFile.name : "Fayl seçin (SVG, PNG, JPG, WEBP, JPEG)"}
+                      </span>
+                      <input 
+                        type="file" 
+                        name="image" 
+                        accept=".jpg,.jpeg,.png,.webp,.svg" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setSelectedFile(file);
+                            setImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
 
