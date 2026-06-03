@@ -3,8 +3,16 @@ import Cookies from 'js-cookie';
 import toast from 'react-hot-toast';
 import { getPermissionLabel } from './permissions';
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  ? (process.env.NEXT_PUBLIC_API_URL.endsWith('/api') || process.env.NEXT_PUBLIC_API_URL.endsWith('/api/')
+    ? process.env.NEXT_PUBLIC_API_URL
+    : `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api`)
+  : (process.env.NODE_ENV === 'production'
+    ? 'http://84.247.184.186:5000/api'
+    : 'http://localhost:5156/api');
+
 const api = axios.create({
-  baseURL: 'http://84.247.184.186:5000/api',
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -80,7 +88,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post('http://84.247.184.186:5000/api/admin/auth/refresh', {
+        const response = await axios.post(`${BASE_URL}/admin/auth/refresh`, {
           accessToken,
           refreshToken,
         });
