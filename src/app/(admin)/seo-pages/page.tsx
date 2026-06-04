@@ -8,6 +8,15 @@ import { ConfirmationModal } from '@/components/ui/modal';
 import { PencilIcon, TrashBinIcon } from '@/icons';
 import Link from 'next/link';
 
+const getSiteUrl = () => {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
+  }
+  return typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'http://84.247.184.186'
+    : 'http://localhost:3000';
+};
+
 function AdminSeoPagesContent() {
   const [pages, setPages] = useState<SeoPageDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +140,17 @@ function AdminSeoPagesContent() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm text-brand-500 font-semibold">
-                    /elanlar/{page.slug}
+                    <a
+                      href={`${getSiteUrl()}/${page.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline flex items-center gap-1"
+                    >
+                      /{page.slug}
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 font-medium">
                     {page.categoryName || <span className="text-gray-400 italic">Bütün elanlar</span>}
@@ -177,7 +196,17 @@ function AdminSeoPagesContent() {
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400 font-medium">Slug:</span>
-                  <span className="text-brand-500 font-semibold truncate max-w-[200px]">/elanlar/{page.slug}</span>
+                  <a
+                    href={`${getSiteUrl()}/${page.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-500 font-semibold truncate max-w-[200px] hover:underline flex items-center gap-1"
+                  >
+                    /{page.slug}
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400 font-medium">Kateqoriya:</span>

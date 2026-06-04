@@ -425,47 +425,53 @@ function CategoriesPageContent() {
 
             {cat.children?.map(child => renderCategoryRow(child, level + 1))}
 
-            {cat.subCategories?.map(sub => (
-              <div key={sub.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 rounded-2xl bg-gray-50/50 dark:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all group/sub shadow-sm hover:shadow-md">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 overflow-hidden flex-shrink-0 shadow-inner">
-                    {sub.imageUrl ? (
-                      <img src={getImageUrl(sub.imageUrl)} alt="" className="w-full h-full object-contain p-2" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <HorizontaLDots className="w-4 h-4" />
+            {cat.subCategories && cat.subCategories.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+                {cat.subCategories.map(sub => (
+                  <div key={sub.id} className="flex items-center justify-between gap-3 p-2 rounded-xl bg-gray-50/50 dark:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all group/sub shadow-sm hover:shadow-md">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 overflow-hidden flex-shrink-0 shadow-inner">
+                        {sub.imageUrl ? (
+                          <img src={getImageUrl(sub.imageUrl)} alt="" className="w-full h-full object-contain p-1.5" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <HorizontaLDots className="w-4 h-4" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h5 className="font-bold text-gray-700 dark:text-gray-300 group-hover/sub:text-brand-500 transition-colors text-sm">{sub.name}</h5>
-                      <span className="text-[10px] font-bold text-gray-400 opacity-60 tracking-widest">/ {sub.slug}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h5 className="font-bold text-gray-700 dark:text-gray-300 group-hover/sub:text-brand-500 transition-colors text-xs truncate">{sub.name}</h5>
+                          <span className="text-[9px] font-bold text-gray-400 opacity-60 truncate">/ {sub.slug}</span>
+                        </div>
+                        {sub.nameRu && <p className="text-[9px] font-medium text-gray-500 truncate italic mt-0.5">{sub.nameRu}</p>}
+                      </div>
                     </div>
-                    {sub.nameRu && <p className="text-[10px] font-medium text-gray-500 truncate italic">{sub.nameRu}</p>}
+                    <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover/sub:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => {
+                          setModalType('subcategory');
+                          setSelectedItem(sub);
+                          setParentId(sub.categoryId);
+                          setIsModalOpen(true);
+                        }}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-white dark:hover:bg-gray-900 shadow-sm transition-all"
+                        title="Redaktə"
+                      >
+                        <PencilIcon className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(sub.id, 'subcategory')}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-error-500 hover:bg-white dark:hover:bg-gray-900 shadow-sm transition-all"
+                        title="Sil"
+                      >
+                        <TrashBinIcon className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover/sub:opacity-100 transition-opacity pr-2 border-t lg:border-t-0 border-gray-100 dark:border-gray-800 pt-2 lg:pt-0">
-                  <button
-                    onClick={() => {
-                      setModalType('subcategory');
-                      setSelectedItem(sub);
-                      setParentId(sub.categoryId);
-                      setIsModalOpen(true);
-                    }}
-                    className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-white dark:hover:bg-gray-900 shadow-sm transition-all"
-                  >
-                    <PencilIcon className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(sub.id, 'subcategory')}
-                    className="p-2 rounded-lg text-gray-400 hover:text-error-500 hover:bg-white dark:hover:bg-gray-900 shadow-sm transition-all"
-                  >
-                    <TrashBinIcon className="w-4 h-4" />
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
+            )}
 
             {cat.subCategories?.length === 0 && cat.children?.length === 0 && (
               <div className="py-4 px-6 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-2xl">
@@ -621,11 +627,11 @@ function CategoriesPageContent() {
                       <span className="text-xs font-bold text-gray-500 truncate max-w-[200px] sm:max-w-xs">
                         {selectedFile ? selectedFile.name : "Fayl seçin (SVG, PNG, JPG, WEBP, JPEG)"}
                       </span>
-                      <input 
-                        type="file" 
-                        name="image" 
-                        accept=".jpg,.jpeg,.png,.webp,.svg" 
-                        className="hidden" 
+                      <input
+                        type="file"
+                        name="image"
+                        accept=".jpg,.jpeg,.png,.webp,.svg"
+                        className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {

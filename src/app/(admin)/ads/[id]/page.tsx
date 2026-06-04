@@ -126,7 +126,7 @@ function AdDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           <span className="text-gray-900 dark:text-white font-medium truncate max-w-xs">{ad.title}</span>
         </div>
-        
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-1">{ad.title}</h1>
           <div className="flex items-center gap-3">
@@ -155,8 +155,8 @@ function AdDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
             {ad.images?.length > 1 && (
               <div className="p-4 flex gap-3 overflow-x-auto">
                 {ad.images.map((img: string, idx: number) => (
-                  <button 
-                    key={idx} 
+                  <button
+                    key={idx}
                     onClick={() => setActiveImage(idx)}
                     className={`shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'border-brand-500 scale-105' : 'border-transparent opacity-60 hover:opacity-100'}`}
                   >
@@ -224,8 +224,8 @@ function AdDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
                 <span className="text-gray-500">Telefon:</span>
                 <span className="font-medium text-gray-900 dark:text-white">{ad.phoneNumber}</span>
               </div>
-              <Link 
-                href={`/users/${ad.seller.id}`} 
+              <Link
+                href={`/users/${ad.seller.id}`}
                 className="block w-full text-center py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 İstifadəçiyə bax
@@ -236,7 +236,7 @@ function AdDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
           {/* Admin Actions */}
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm space-y-4">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">İdarəetmə</h3>
-            
+
             {(ad.isVip || ad.isPremium || ad.isBoosted) && (
               <div className="p-3 bg-warning-50 dark:bg-warning-900/10 border border-warning-200 dark:border-warning-800 rounded-2xl mb-2">
                 <p className="text-xs text-warning-700 dark:text-warning-400 font-semibold flex items-center gap-2">
@@ -257,7 +257,17 @@ function AdDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
 
             <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
-              <button 
+              <Link
+                href={`/ads/${id}/edit`}
+                className="w-full mb-3 flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold transition-colors shadow-lg shadow-brand-500/25"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Elanı Redaktə Et
+              </Link>
+
+              <button
                 onClick={() => setModalState({ isOpen: true, action: 'delete' })}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-error-50 dark:bg-error-900/10 text-error-600 dark:text-error-400 font-bold hover:bg-error-100 transition-colors"
               >
@@ -278,8 +288,8 @@ function AdDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
               {modalState.action === 'delete' ? 'Elanı Sil' : 'Elanı Rədd Et'}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {modalState.action === 'delete' 
-                ? 'Bu elanı silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.' 
+              {modalState.action === 'delete'
+                ? 'Bu elanı silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.'
                 : 'Bu elanı rədd etmək üçün səbəb daxil edin:'}
             </p>
 
@@ -335,7 +345,7 @@ function ActionButton({ onClick, active, color, label }: { onClick: () => void, 
     danger: 'border-error-200 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20',
     gray: 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800',
   };
-  
+
   return (
     <button
       onClick={onClick}

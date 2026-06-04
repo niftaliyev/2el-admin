@@ -14,6 +14,7 @@ function AdminSearchesContent() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<'newest' | 'count'>('newest');
 
   // Deletion state
   const [confirmModal, setConfirmModal] = useState<{
@@ -53,17 +54,28 @@ function AdminSearchesContent() {
     }
   };
 
+  // Sort Calculations
+  const sortedSearches = [...searches].sort((a, b) => {
+    if (sortBy === 'count') {
+      return b.count - a.count;
+    } else {
+      const dateA = new Date(a.updatedDate || a.createdDate).getTime();
+      const dateB = new Date(b.updatedDate || b.createdDate).getTime();
+      return dateB - dateA;
+    }
+  });
+
   // Pagination Calculations
-  const totalCount = searches.length;
+  const totalCount = sortedSearches.length;
   const totalPages = Math.ceil(totalCount / pageSize);
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
     }
-  }, [searches.length, pageSize, totalPages, currentPage]);
+  }, [sortedSearches.length, pageSize, totalPages, currentPage]);
 
-  const paginatedSearches = searches.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedSearches = sortedSearches.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const getPageNumbers = () => {
     const delta = 1;
@@ -94,11 +106,29 @@ function AdminSearchesContent() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Axtarışlar (Searched Terms)</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          İstifadəçilərin saytda hansı açar sözləri axtardıqlarını və axtarış saylarını izləyin
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Axtarışlar (Searched Terms)</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            İstifadəçilərin saytda hansı açar sözləri axtardıqlarını və axtarış saylarını izləyin
+          </p>
+        </div>
+        
+        {/* Sort Select */}
+        <div className="flex items-center gap-2.5 shrink-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-1.5 px-3.5 rounded-xl shadow-sm">
+          <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sıralama:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as 'newest' | 'count');
+              setCurrentPage(1);
+            }}
+            className="h-9 px-2 bg-transparent rounded-lg text-sm text-gray-700 dark:text-gray-300 font-bold focus:outline-none cursor-pointer"
+          >
+            <option value="newest">Ən yeni</option>
+            <option value="count">Axtarış sayı</option>
+          </select>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">

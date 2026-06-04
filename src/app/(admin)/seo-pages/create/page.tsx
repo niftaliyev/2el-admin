@@ -55,6 +55,8 @@ function AdminSeoPageCreateContent() {
     contentBottom: '',
     categoryId: '',
     adIds: [],
+    metaTitle: '',
+    metaDescription: '',
   });
 
   useEffect(() => {
@@ -117,6 +119,8 @@ function AdminSeoPageCreateContent() {
           contentBottom: data.contentBottom || '',
           categoryId: data.categoryId || '',
           adIds: data.adIds || [],
+          metaTitle: data.metaTitle || '',
+          metaDescription: data.metaDescription || '',
         });
         if (data.ads) {
           setPinnedAds(data.ads);
@@ -185,6 +189,8 @@ function AdminSeoPageCreateContent() {
         slug: formData.slug.trim().toLowerCase(),
         categoryId: formData.categoryId || undefined, // Send undefined if empty
         adIds: pinnedAds.map(a => a.id),
+        metaTitle: formData.metaTitle?.trim() || undefined,
+        metaDescription: formData.metaDescription?.trim() || undefined,
       };
 
       if (editId) {
@@ -236,7 +242,7 @@ function AdminSeoPageCreateContent() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, slug: e.target.value })}
             />
             <p className="text-[10px] text-gray-400 mt-1">
-              Bu slug vasitəsilə səhifə https://2el.az/elanlar/[slug] ünvanında görünəcək.
+              Bu slug vasitəsilə səhifə https://2el.az/[slug] ünvanında görünəcək.
             </p>
           </div>
 
@@ -412,6 +418,41 @@ function AdminSeoPageCreateContent() {
               }}
               placeholder="Elanların aşağısında görünəcək mətni daxil edin..."
             />
+          </div>
+        </div>
+
+        <hr className="border-gray-200 dark:border-gray-800" />
+
+        <div className="space-y-4">
+          <h3 className="font-bold text-gray-900 dark:text-white text-base">SEO Meta Məlumatları (Axtarış motorları üçün)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="metaTitle">Meta Başlıq (Meta Title)</Label>
+              <Input
+                id="metaTitle"
+                placeholder="məs. Attestatla Türkiyədə Təhsil Qiymətləri"
+                value={formData.metaTitle || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, metaTitle: e.target.value })}
+              />
+              <p className="text-[10px] text-gray-400 mt-1">
+                Axtarış motorlarında görünəcək səhifə başlığı. Boş buraxılsa, H1 başlığı istifadə olunacaq.
+              </p>
+            </div>
+
+            <div className="flex flex-col">
+              <Label htmlFor="metaDescription">Meta Təsvir (Meta Description)</Label>
+              <textarea
+                id="metaDescription"
+                rows={3}
+                placeholder="məs. Türkiyədə attestatla təhsil qiymətləri, universitetlər və ixtisaslar haqqında ətraflı məlumat..."
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-brand-500 placeholder:text-gray-400"
+                value={formData.metaDescription || ''}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, metaDescription: e.target.value })}
+              />
+              <p className="text-[10px] text-gray-400 mt-1">
+                Axtarış motorlarında görünəcək qısa təsvir. Boş buraxılsa, üst təsvirin ilk 160 simvolu istifadə olunacaq.
+              </p>
+            </div>
           </div>
         </div>
 
