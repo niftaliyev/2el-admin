@@ -182,7 +182,7 @@ class AdminService {
     const response = await api.get('/admin/payment-detail');
     return response.data;
   }
- 
+
   async getMinStoreBalance(): Promise<number> {
     const response = await api.get<{ minBalance: number }>('/admin/system-min-store-balance');
     return response.data.minBalance;
@@ -322,6 +322,11 @@ class AdminService {
     await api.patch(`/admin/ad-applications/${id}/status`, { isProcessed, adminNote });
   }
 
+  async deleteAdApplication(id: string): Promise<void> {
+    await api.delete(`/admin/ad-applications/${id}`);
+  }
+
+
   // ── Commercial Banners ────────────────────────────────────────────────────
 
   async getBanners(): Promise<any[]> {
@@ -421,6 +426,62 @@ class AdminService {
   async getCities(): Promise<any[]> {
     const response = await api.get<any[]>('/lookup/cities');
     return response.data ?? [];
+  }
+
+  async getCategories(parentId?: string): Promise<any[]> {
+    const params = parentId ? { parentId } : {};
+    const response = await api.get<any[]>('/category', { params });
+    return response.data ?? [];
+  }
+
+  async getSubCategories(categoryId: string): Promise<any[]> {
+    const response = await api.get<any[]>(`/category/${categoryId}/subcategories`);
+    return response.data ?? [];
+  }
+
+  async getAdTypes(): Promise<any[]> {
+    const response = await api.get<any[]>('/ad/types');
+    return response.data ?? [];
+  }
+
+  async getEditData(id: string): Promise<any> {
+    const response = await api.get(`/ad/${id}/edit`);
+    return response.data;
+  }
+
+  async updateAd(id: string, adData: any): Promise<void> {
+    const formData = new FormData();
+    formData.append('CityId', adData.CityId);
+    formData.append('Price', adData.Price.toString());
+    formData.append('IsDeliverable', adData.IsDeliverable.toString());
+    formData.append('IsNew', adData.IsNew.toString());
+    formData.append('PhoneNumber', adData.PhoneNumber);
+    formData.append('AdTypeId', adData.AdTypeId);
+    formData.append('Title', adData.Title);
+    formData.append('CategoryId', adData.CategoryId);
+    if (adData.SubCategoryId) formData.append('SubCategoryId', adData.SubCategoryId);
+    formData.append('FullName', adData.FullName);
+    formData.append('Email', adData.Email);
+    formData.append('Description', adData.Description);
+    if (adData.DynamicFieldsJson) formData.append('DynamicFieldsJson', adData.DynamicFieldsJson);
+    
+    if (adData.Images && adData.Images.length > 0) {
+      adData.Images.forEach((img: File) => formData.append('NewImages', img));
+    }
+    
+    if (adData.DeletedImageIds && adData.DeletedImageIds.length > 0) {
+      adData.DeletedImageIds.forEach((imgId: string) => formData.append('DeletedImageIds', imgId));
+    }
+
+    if (adData.MainImageId) {
+      formData.append('MainImageId', adData.MainImageId);
+    } else if (adData.NewMainImageIndex !== undefined) {
+      formData.append('NewMainImageIndex', adData.NewMainImageIndex.toString());
+    }
+
+    await api.put(`/ad/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   }
 
   async sendNotification(dto: { userId?: string; title: string; text: string; link?: string; notificationType: number }): Promise<void> {

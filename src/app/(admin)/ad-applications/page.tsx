@@ -1,5 +1,6 @@
 'use client';
 import PermissionGuard from '@/components/auth/PermissionGuard';
+import { ConfirmationModal } from '@/components/ui/modal';
 
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin.service';
@@ -14,6 +15,8 @@ function AdminAdApplicationsPageContent() {
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [adminNote, setAdminNote] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   useEffect(() => { fetchApplications(); }, [pagination.page, filter]);
 
@@ -50,6 +53,29 @@ function AdminAdApplicationsPageContent() {
     }
   };
 
+  const openDeleteModal = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      setIsDeleteLoading(true);
+      await adminService.deleteAdApplication(deleteId);
+      toast.success('Müraciət silindi');
+      fetchApplications();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Silinmə zamanı xəta baş verdi');
+    } finally {
+      setIsDeleteLoading(false);
+      setDeleteId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -59,7 +85,7 @@ function AdminAdApplicationsPageContent() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Saytda reklam yerləşdirmək istəyən şəxslərin müraciətləri</p>
         </div>
         {/* Filter Tabs */}
-        <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+        <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-x-auto no-scrollbar max-w-full">
           {[
             { label: 'Hamısı', value: undefined },
             { label: 'Gözləyən', value: false },
@@ -140,11 +166,11 @@ function AdminAdApplicationsPageContent() {
                   )}
                 </div>
 
-                <div className="flex gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0 mt-4 lg:mt-0 w-full lg:w-auto">
                   <button
                     onClick={() => handleOpenModal(app)}
                     disabled={isProcessing === app.id}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                       app.isProcessed
                         ? 'border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                         : 'bg-brand-500 text-white hover:bg-brand-600 shadow-sm'
@@ -156,11 +182,21 @@ function AdminAdApplicationsPageContent() {
                     <button
                       onClick={() => handleUpdateStatus(app.id, false, app.adminNote)}
                       disabled={isProcessing === app.id}
-                      className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-warning-200 dark:border-warning-800 text-warning-600 dark:text-warning-400 hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
+                      className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-sm font-semibold border border-warning-200 dark:border-warning-800 text-warning-600 dark:text-warning-400 hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
                     >
                       Gözləyənə qaytar
                     </button>
                   )}
+                  <button
+                    onClick={() => openDeleteModal(app.id)}
+                    disabled={isProcessing === app.id}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-sm font-semibold border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Sil
+                  </button>
                 </div>
               </div>
             </div>
@@ -170,20 +206,58 @@ function AdminAdApplicationsPageContent() {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          {Array.from({ length: pagination.totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setPagination(p => ({ ...p, page: i + 1 }))}
-              className={`w-9 h-9 rounded-lg text-sm font-semibold transition-all ${
-                pagination.page === i + 1
-                  ? 'bg-brand-500 text-white shadow-sm'
-                  : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setPagination(p => ({ ...p, page: Math.max(1, p.page - 1) }))}
+            disabled={pagination.page === 1}
+            className="flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          {Array.from({ length: pagination.totalPages }).map((_, i) => {
+            const pageNum = i + 1;
+            if (
+              pagination.totalPages > 6 &&
+              pageNum !== 1 &&
+              pageNum !== pagination.totalPages &&
+              Math.abs(pageNum - pagination.page) > 1
+            ) {
+              if (pageNum === 2 && pagination.page > 3) {
+                return <span key="dots-start" className="px-1 text-gray-400">...</span>;
+              }
+              if (pageNum === pagination.totalPages - 1 && pagination.page < pagination.totalPages - 2) {
+                return <span key="dots-end" className="px-1 text-gray-400">...</span>;
+              }
+              return null;
+            }
+
+            return (
+              <button
+                key={pageNum}
+                onClick={() => setPagination(p => ({ ...p, page: pageNum }))}
+                className={`w-9 h-9 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                  pagination.page === pageNum
+                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20'
+                    : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+
+          <button
+            onClick={() => setPagination(p => ({ ...p, page: Math.min(pagination.totalPages, p.page + 1) }))}
+            disabled={pagination.page === pagination.totalPages}
+            className="flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       )}
 
@@ -221,6 +295,18 @@ function AdminAdApplicationsPageContent() {
           </div>
         </div>
       )}
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteId !== null}
+        onClose={closeDeleteModal}
+        onConfirm={handleConfirmDelete}
+        title="Müraciəti Sil"
+        message="Bu müraciəti silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz."
+        confirmText="Sil"
+        cancelText="Ləğv et"
+        type="danger"
+        loading={isDeleteLoading}
+      />
     </div>
   );
 }
