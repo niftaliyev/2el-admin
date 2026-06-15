@@ -53,6 +53,15 @@ function AdminUsersPageContent() {
     selectedRoles: string[];
   }>({ isOpen: false, user: null, selectedRoles: [] });
   const [allRoles, setAllRoles] = useState<AdminRole[]>([]);
+  const [emailModal, setEmailModal] = useState<{
+    isOpen: boolean;
+    userIds: string[];
+    sendToAll: boolean;
+    subject: string;
+    body: string;
+    singleUserName?: string;
+  }>({ isOpen: false, userIds: [], sendToAll: false, subject: '', body: '' });
+  const [emailSending, setEmailSending] = useState(false);
 
   const searchParams = useSearchParams();
 
@@ -136,6 +145,30 @@ function AdminUsersPageContent() {
     }
   };
 
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailModal.subject.trim() || !emailModal.body.trim()) {
+      toast.error('Mövzu və məzmun daxil edilməlidir');
+      return;
+    }
+    setEmailSending(true);
+    try {
+      await adminService.sendEmail({
+        userIds: emailModal.sendToAll ? undefined : emailModal.userIds,
+        sendToAll: emailModal.sendToAll,
+        subject: emailModal.subject.trim(),
+        body: emailModal.body.trim(),
+      });
+      toast.success('E-poçtların göndərilməsi başladıldı!');
+      setEmailModal({ isOpen: false, userIds: [], sendToAll: false, subject: '', body: '' });
+      setSelectedIds([]);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'E-poçt göndərilərkən xəta baş verdi');
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   const openRoleModal = (user: AdminUser) => {
     setRoleModal({
       isOpen: true,
@@ -155,6 +188,14 @@ function AdminUsersPageContent() {
 
         {/* Sorting controls */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setEmailModal({ isOpen: true, userIds: [], sendToAll: true, subject: '', body: '' })}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-brand-500 hover:bg-brand-600 text-white transition-colors"
+            title="Bütün istifadəçilərə e-poçt göndər"
+          >
+            <span className="material-symbols-outlined !text-base">mail</span>
+            <span>Hər kəsə E-poçt</span>
+          </button>
           <select
             value={sortBy}
             onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
@@ -232,6 +273,7 @@ function AdminUsersPageContent() {
           <div className="flex items-center gap-3 px-4 py-3 bg-brand-50 dark:bg-brand-900/20 border-b border-gray-200 dark:border-gray-800">
             <span className="text-sm font-medium text-brand-600 dark:text-brand-400">{selectedIds.length} seçilib</span>
             <div className="flex gap-2 ml-auto">
+              <button onClick={() => setEmailModal({ isOpen: true, userIds: selectedIds, sendToAll: false, subject: '', body: '' })} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 text-white hover:bg-brand-600 transition-colors">Məktub Göndər</button>
               <button onClick={() => handleBulkAction('unblock')} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-success-500 text-white hover:bg-success-600 transition-colors">Blokdan çıxart</button>
               <button onClick={() => handleBulkAction('block')} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-error-500 text-white hover:bg-error-600 transition-colors">Blok et</button>
               <button onClick={() => handleBulkAction('delete')} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300">Sil</button>
@@ -313,6 +355,15 @@ function AdminUsersPageContent() {
                         <Link href={`/users/${user.id}`} className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" title="Bax">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         </Link>
+                        <button
+                          onClick={() => setEmailModal({ isOpen: true, userIds: [user.id], sendToAll: false, subject: '', body: '', singleUserName: user.name })}
+                          className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                          title="E-poçt göndər"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </button>
                         {(currentUser?.roles?.includes('SuperAdmin') || currentUser?.roles?.includes('Admin')) && (
                           <button onClick={() => openRoleModal(user)} className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" title="Rollar">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -441,6 +492,106 @@ function AdminUsersPageContent() {
               <button onClick={() => setRoleModal({ ...roleModal, isOpen: false })} className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Ləğv et</button>
               <button onClick={handleRoleUpdate} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 transition-colors shadow-lg shadow-brand-500/20">Yadda saxla</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Modal */}
+      {emailModal.isOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setEmailModal({ ...emailModal, isOpen: false })} />
+          <div className="relative bg-white dark:bg-gray-900 w-full max-w-lg rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
+              <h3 className="text-lg font-bold text-gray-905 dark:text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-brand-500">mail</span>
+                İstifadəçiyə E-poçt Göndər
+              </h3>
+              <button onClick={() => setEmailModal({ ...emailModal, isOpen: false })} className="text-gray-400 hover:text-gray-600">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSendEmail} className="space-y-5">
+              {/* Recipient info indicator */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Alıcılar</label>
+                <div className="p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-xl text-sm text-gray-700 dark:text-gray-300 font-medium">
+                  {emailModal.sendToAll ? (
+                    <span className="text-brand-600 dark:text-brand-400 font-bold flex items-center gap-1.5">
+                      <span className="material-symbols-outlined !text-lg">groups</span>
+                      Bütün İstifadəçilər (Toplu Göndərmə)
+                    </span>
+                  ) : emailModal.userIds.length === 1 ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined !text-lg">person</span>
+                      {emailModal.singleUserName || "Seçilmiş istifadəçi"}
+                    </span>
+                  ) : (
+                    <span className="text-brand-600 dark:text-brand-400 font-bold flex items-center gap-1.5">
+                      <span className="material-symbols-outlined !text-lg">checklist_rtl</span>
+                      {emailModal.userIds.length} Seçilmiş İstifadəçi
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mövzu</label>
+                <input
+                  type="text"
+                  value={emailModal.subject}
+                  onChange={(e) => setEmailModal({ ...emailModal, subject: e.target.value })}
+                  placeholder="Məs: Hesab təsdiqi / Elan qaydaları"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-semibold"
+                  required
+                />
+              </div>
+
+              {/* Message Body */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Məktub Məzmunu (HTML dəstəklənir)</label>
+                  <span className="text-[10px] text-gray-400 font-medium">HTML teqlərindən istifadə edə bilərsiniz</span>
+                </div>
+                <textarea
+                  value={emailModal.body}
+                  onChange={(e) => setEmailModal({ ...emailModal, body: e.target.value })}
+                  rows={8}
+                  placeholder="Salam, məktub məzmununu bura daxil edin..."
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all resize-none leading-relaxed font-mono"
+                  required
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setEmailModal({ ...emailModal, isOpen: false })}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Ləğv et
+                </button>
+                <button
+                  type="submit"
+                  disabled={emailSending}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 transition-colors shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2"
+                >
+                  {emailSending ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                      Göndərilir...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined !text-lg">send</span>
+                      Göndər
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

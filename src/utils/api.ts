@@ -8,7 +8,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     ? process.env.NEXT_PUBLIC_API_URL
     : `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api`)
   : (process.env.NODE_ENV === 'production'
-    ? 'http://84.247.184.186:5000/api'
+    ? 'http://13.140.173.54:5000/api'
     : 'http://localhost:5156/api');
 
 const api = axios.create({

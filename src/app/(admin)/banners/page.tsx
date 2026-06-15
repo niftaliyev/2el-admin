@@ -28,9 +28,14 @@ function AdminBannersPageContent() {
     onConfirm: () => { },
   });
 
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'inactive'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'inactive' | 'expired'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  const isExpired = (banner: any) => {
+    if (!banner.endDate) return false;
+    return new Date(banner.endDate) < new Date();
+  };
 
   useEffect(() => {
     fetchBanners();
@@ -38,8 +43,9 @@ function AdminBannersPageContent() {
   }, []);
 
   const filteredBanners = banners.filter(banner => {
-    if (activeTab === 'active') return banner.isActive;
-    if (activeTab === 'inactive') return !banner.isActive;
+    if (activeTab === 'active') return banner.isActive && !isExpired(banner);
+    if (activeTab === 'inactive') return !banner.isActive && !isExpired(banner);
+    if (activeTab === 'expired') return isExpired(banner);
     return true;
   });
 
@@ -119,6 +125,43 @@ function AdminBannersPageContent() {
     }
   };
 
+  const handleReactivate = (banner: any) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Banneri Reaktivasiya Et',
+      message: `"${banner.title}" bannerini reaktivasiya etmək istədiyinizə əminsiniz? Başlama tarixi bu gün, bitmə tarixi isə 30 gün sonraya (aylıq) təyin ediləcək və statusu aktivləşdiriləcək.`,
+      onConfirm: async () => {
+        try {
+          setIsProcessing(true);
+          const updatedBanner: any = {
+            id: banner.id,
+            title: banner.title,
+            targetUrl: banner.targetUrl,
+            position: typeof banner.position === 'number'
+              ? ({ 1: 'LeftSidebar', 2: 'RightSidebar' } as Record<number, string>)[banner.position]
+              : banner.position || 'LeftSidebar',
+            categoryId: banner.categoryId || null,
+            cityId: banner.cityId || null,
+            language: banner.language || null,
+            priority: banner.priority || 0,
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            isActive: true,
+            scriptCode: banner.scriptCode,
+            imageUrl: banner.imageUrl || '',
+          };
+          await adminService.upsertBanner(updatedBanner);
+          toast.success('Banner uğurla reaktivasiya edildi');
+          fetchBanners();
+        } catch {
+          toast.error('Reaktivasiya zamanı xəta baş verdi');
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+    });
+  };
+
   const handleDelete = async (id: string) => {
     setConfirmModal({
       isOpen: true,
@@ -169,8 +212,9 @@ function AdminBannersPageContent() {
         <div className="flex items-center gap-1 p-1 bg-gray-50 dark:bg-gray-800 rounded-xl w-full sm:w-auto">
           {[
             { id: 'all', label: 'Hamısı', count: banners.length },
-            { id: 'active', label: 'Aktiv', count: banners.filter(b => b.isActive).length },
-            { id: 'inactive', label: 'Deaktiv', count: banners.filter(b => !b.isActive).length },
+            { id: 'active', label: 'Aktiv', count: banners.filter(b => b.isActive && !isExpired(b)).length },
+            { id: 'inactive', label: 'Deaktiv', count: banners.filter(b => !b.isActive && !isExpired(b)).length },
+            { id: 'expired', label: 'Vaxtı bitmiş', count: banners.filter(isExpired).length },
           ].map(tab => (
             <button
               key={tab.id}
@@ -215,7 +259,7 @@ function AdminBannersPageContent() {
         <div className="space-y-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {paginatedBanners.map(banner => (
-              <div key={banner.id} className={`group rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:border-brand-500/30 transition-all duration-300 ${!banner.isActive ? 'opacity-60 grayscale' : ''}`}>
+              <div key={banner.id} className={`group rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:border-brand-500/30 transition-all duration-300 ${(!banner.isActive || isExpired(banner)) ? 'opacity-60 grayscale' : ''}`}>
                 <div className="aspect-[16/9] relative overflow-hidden bg-gray-100 dark:bg-gray-800">
                   {banner.scriptCode ? (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-brand-50/30 dark:bg-brand-900/5 p-3">
@@ -245,21 +289,46 @@ function AdminBannersPageContent() {
                     <h3 className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white truncate group-hover:text-brand-500 transition-colors" title={banner.title}>{banner.title}</h3>
                   </div>
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Baxış</span>
-                      <span className="text-xs font-black text-brand-600 dark:text-brand-400">{banner.viewCount || 0}</span>
+                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Baxış / Klik</span>
+                      <span className="text-xs font-black text-brand-600 dark:text-brand-400">
+                        {banner.viewCount || 0} / {banner.clickCount || 0}
+                      </span>
                     </div>
-                    {!banner.isActive && (
+                    {isExpired(banner) ? (
+                      <span className="px-2 py-0.5 rounded-md text-[8px] font-black bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 uppercase">Müddəti bitib</span>
+                    ) : !banner.isActive ? (
                       <span className="px-2 py-0.5 rounded-md text-[8px] font-black bg-red-100 dark:bg-red-900/30 text-red-500 uppercase">Deaktiv</span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-md text-[8px] font-black bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 uppercase">Aktiv</span>
                     )}
                   </div>
 
-                  <div className="mt-auto flex gap-1.5">
-                    <button onClick={() => { setSelectedBanner(banner); setIsModalOpen(true); setShowPreview(false); setTempScriptCode(''); }} className="flex-1 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[10px] sm:text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all duration-300">Redaktə</button>
-                    <button onClick={() => handleDelete(banner.id)} className="p-2 rounded-lg border border-red-100 dark:border-red-900/30 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-3 border-t border-gray-100 dark:border-gray-800 pt-2 flex justify-between">
+                    <span>{new Date(banner.startDate).toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                    <span>-</span>
+                    <span className={isExpired(banner) ? 'text-amber-600 dark:text-amber-400 font-bold' : ''}>
+                      {new Date(banner.endDate).toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </span>
+                  </div>
+
+                  <div className="mt-auto space-y-2">
+                    {isExpired(banner) && (
+                      <button 
+                        onClick={() => handleReactivate(banner)} 
+                        className="w-full py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-[10px] sm:text-xs font-bold text-white transition-all duration-300 shadow-sm flex items-center justify-center gap-1 active:scale-[0.98]"
+                      >
+                        <span className="material-symbols-outlined !text-[14px]">autorenew</span>
+                        Reaktivasiya et
+                      </button>
+                    )}
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { setSelectedBanner(banner); setIsModalOpen(true); setShowPreview(false); setTempScriptCode(''); }} className="flex-1 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[10px] sm:text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all duration-300">Redaktə</button>
+                      <button onClick={() => handleDelete(banner.id)} className="p-2 rounded-lg border border-red-100 dark:border-red-900/30 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -320,6 +389,40 @@ function AdminBannersPageContent() {
                 <div className={`grid grid-cols-1 ${showPreview && (tempScriptCode || selectedBanner?.scriptCode) ? 'xl:grid-cols-2' : ''} gap-8`}>
                   {/* Left Side: Inputs */}
                   <div className="space-y-6">
+                    {selectedBanner && isExpired(selectedBanner) && (
+                      <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-sm">
+                            <span className="material-symbols-outlined !text-[18px]">warning</span>
+                            Reklamın vaxtı bitib
+                          </div>
+                          <p className="text-xs text-amber-600 dark:text-amber-400">
+                            Bu bannerin müddəti başa çatmışdır. Aşağıdakı tarixləri avtomatik olaraq bu gündən etibarən 30 günlük təyin edə bilərsiniz.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const startInput = document.querySelector('input[name="startDate"]') as HTMLInputElement;
+                            const endInput = document.querySelector('input[name="endDate"]') as HTMLInputElement;
+                            const activeCheckbox = document.querySelector('input[name="isActive"]') as HTMLInputElement;
+                            
+                            if (startInput) startInput.value = new Date().toISOString().split('T')[0];
+                            
+                            // 30 days from now
+                            const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                            if (endInput) endInput.value = thirtyDaysLater.toISOString().split('T')[0];
+                            
+                            if (activeCheckbox) activeCheckbox.checked = true;
+                            
+                            toast.success('Tarixlər bu gündən etibarən 30 günlük təyin edildi və Aktivləşdirildi.');
+                          }}
+                          className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-amber-500/10 active:scale-95"
+                        >
+                          Tarixləri Yenilə
+                        </button>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
                         <label className={labelClass}>Başlıq</label>
