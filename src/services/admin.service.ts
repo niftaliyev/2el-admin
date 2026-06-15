@@ -487,6 +487,48 @@ class AdminService {
   async sendNotification(dto: { userId?: string; title: string; text: string; link?: string; notificationType: number }): Promise<void> {
     await api.post('/admin/send-notification', dto);
   }
+
+  async sendEmail(dto: { userIds?: string[]; sendToAll: boolean; subject: string; body: string }): Promise<void> {
+    await api.post('/admin/send-email', dto);
+  }
+
+  // ── Promotions ──────────────────────────────────────────────────────────
+
+  async getPromotionRequests(status?: string, page = 1, pageSize = 10): Promise<any> {
+    const params: any = { page, pageSize };
+    if (status && status !== 'all') {
+      const statusMap: Record<string, number> = {
+        'pending': 0,
+        'processing': 1,
+        'completed': 2,
+        'cancelled': 3
+      };
+      if (statusMap[status.toLowerCase()] !== undefined) {
+        params.status = statusMap[status.toLowerCase()];
+      }
+    }
+    const response = await api.get('/admin/promotions/requests', { params });
+    return response.data;
+  }
+
+  async updatePromotionRequestStatus(id: string, status: number, adminNotes?: string, rejectReason?: string): Promise<void> {
+    await api.put(`/admin/promotions/requests/${id}/status`, { status, adminNotes, rejectReason });
+  }
+
+  async getPromotionPackages(): Promise<any[]> {
+    const response = await api.get<any[]>('/admin/promotions/packages');
+    return response.data ?? [];
+  }
+
+  async upsertPromotionPackage(pkg: any): Promise<void> {
+    await api.post('/admin/promotions/packages', pkg);
+  }
+
+  async deletePromotionPackage(id: string): Promise<void> {
+    await api.delete(`/admin/promotions/packages/${id}`);
+  }
 }
 
 export const adminService = new AdminService();
+
+

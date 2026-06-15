@@ -128,12 +128,22 @@ function AdEditPageContent({ params }: { params: Promise<{ id: string }> }) {
             adminService.getCategoryFields(ad.subCategoryId)
           ]);
           setBrands(brandsData);
-          setCategoryFields(fieldsData);
+          const sortedFields = [...fieldsData].sort((a, b) => {
+            if (a.name === 'Elanın tipi') return -1;
+            if (b.name === 'Elanın tipi') return 1;
+            return 0;
+          });
+          setCategoryFields(sortedFields);
           setLoadingBrands(false);
         } else {
           // If no subcategory, check if category has fields
           const fieldsData = await adminService.getCategoryFields(ad.categoryId);
-          setCategoryFields(fieldsData);
+          const sortedFields = [...fieldsData].sort((a, b) => {
+            if (a.name === 'Elanın tipi') return -1;
+            if (b.name === 'Elanın tipi') return 1;
+            return 0;
+          });
+          setCategoryFields(sortedFields);
         }
         setLoadingSubCategories(false);
       }
@@ -161,7 +171,12 @@ function AdEditPageContent({ params }: { params: Promise<{ id: string }> }) {
 
       // Fetch fields for root category just in case it doesn't have child categories
       const fieldsData = await adminService.getCategoryFields(catId);
-      setCategoryFields(fieldsData);
+      const sortedFields = [...fieldsData].sort((a, b) => {
+        if (a.name === 'Elanın tipi') return -1;
+        if (b.name === 'Elanın tipi') return 1;
+        return 0;
+      });
+      setCategoryFields(sortedFields);
     } catch (e) {
       console.error(e);
     } finally {
@@ -184,7 +199,12 @@ function AdEditPageContent({ params }: { params: Promise<{ id: string }> }) {
         adminService.getCategoryFields(subCatId),
       ]);
       setBrands(brandsData);
-      setCategoryFields(fieldsData);
+      const sortedFields = [...fieldsData].sort((a, b) => {
+        if (a.name === 'Elanın tipi') return -1;
+        if (b.name === 'Elanın tipi') return 1;
+        return 0;
+      });
+      setCategoryFields(sortedFields);
     } catch (e) {
       console.error(e);
     } finally {

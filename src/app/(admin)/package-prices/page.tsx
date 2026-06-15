@@ -57,15 +57,54 @@ const RocketIcon = ({ className = "w-5 h-5", size }: { className?: string, size?
   </svg>
 );
 
+const SocialIcon = ({ size = 20, className }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
+
+const VideoIcon = ({ size = 20, className }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <polygon points="23 7 16 12 23 17 23 7" />
+    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+  </svg>
+);
+
+
 
 function AdminPackagePricesPageContent() {
   const { hasPermission } = useAuth();
   const canManage = hasPermission('Packages_Manage');
   const [packages, setPackages] = useState<any[]>([]);
+  const [promoPackages, setPromoPackages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [mainTab, setMainTab] = useState<'standard' | 'special'>('standard');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'Vip' | 'Premium' | 'Boost'>('all');
+  const [activePromoTab, setActivePromoTab] = useState<'all' | 'SocialMedia' | 'VideoProduction'>('all');
   const [editingPackage, setEditingPackage] = useState<any>(null);
+  const [editingPromoPackage, setEditingPromoPackage] = useState<any>(null);
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -89,6 +128,16 @@ function AdminPackagePricesPageContent() {
     descriptionRu: ''
   });
 
+  const [promoFormData, setPromoFormData] = useState({
+    name: '',
+    nameRu: '',
+    price: 0,
+    type: 'SocialMedia',
+    description: '',
+    descriptionRu: '',
+    isActive: true
+  });
+
   useEffect(() => {
     loadData();
   }, []);
@@ -98,12 +147,98 @@ function AdminPackagePricesPageContent() {
     try {
       const pkgs = await adminService.getAdminPackages();
       setPackages(pkgs);
+      const prPkgs = await adminService.getPromotionPackages();
+      setPromoPackages(prPkgs);
     } catch (error) {
       toast.error('Məlumatları yükləmək mümkün olmadı');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleOpenPromoModal = (pkg: any = null) => {
+    if (pkg) {
+      setEditingPromoPackage(pkg);
+      setPromoFormData({
+        name: pkg.name || '',
+        nameRu: pkg.nameRu || '',
+        price: pkg.price || 0,
+        type: pkg.type || 'SocialMedia',
+        description: pkg.description || '',
+        descriptionRu: pkg.descriptionRu || '',
+        isActive: pkg.isActive !== undefined ? pkg.isActive : true
+      });
+    } else {
+      setEditingPromoPackage(null);
+      setPromoFormData({
+        name: '',
+        nameRu: '',
+        price: 0,
+        type: 'SocialMedia',
+        description: '',
+        descriptionRu: '',
+        isActive: true
+      });
+    }
+    setIsPromoModalOpen(true);
+  };
+
+  const handlePromoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload: any = {
+      id: editingPromoPackage?.id || '00000000-0000-0000-0000-000000000000',
+      name: promoFormData.name.trim(),
+      nameRu: promoFormData.nameRu?.trim() || null,
+      price: Number(promoFormData.price),
+      type: promoFormData.type,
+      description: promoFormData.description.trim(),
+      descriptionRu: promoFormData.descriptionRu?.trim() || null,
+      isActive: promoFormData.isActive
+    };
+
+    if (!payload.name) {
+      toast.error('Paket adı daxil edilməlidir');
+      return;
+    }
+    if (payload.price <= 0) {
+      toast.error('Qiymət 0-dan böyük olmalıdır');
+      return;
+    }
+    if (!payload.description) {
+      toast.error('Paket açıqlaması daxil edilməlidir');
+      return;
+    }
+
+    try {
+      await adminService.upsertPromotionPackage(payload);
+      toast.success(editingPromoPackage ? 'Sosial/Video paketi yeniləndi' : 'Yeni Sosial/Video paketi yaradıldı');
+      setIsPromoModalOpen(false);
+      loadData();
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Xəta baş verdi';
+      toast.error(errorMessage);
+    }
+  };
+
+  const handlePromoDelete = async (id: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Sosial/Video Paketini Sil',
+      message: 'Bu Sosial/Video reklam paketini silmək istədiyinizə əminsiniz?',
+      onConfirm: async () => {
+        try {
+          await adminService.deletePromotionPackage(id);
+          toast.success('Paket silindi');
+          loadData();
+        } catch (error: any) {
+          const errorMessage = error?.response?.data?.message || 'Xəta baş verdi';
+          toast.error(errorMessage);
+        }
+      },
+    });
+  };
+
 
   const handleOpenModal = (pkg: any = null) => {
     if (pkg) {
@@ -213,7 +348,22 @@ function AdminPackagePricesPageContent() {
     return { total, vip, prem, boost };
   };
 
+  // Filter special packages based on activePromoTab
+  const filteredPromoPackages = promoPackages.filter(pkg => {
+    if (activePromoTab === 'all') return true;
+    return pkg.type === activePromoTab;
+  });
+
+  const getPromoStats = () => {
+    const total = promoPackages.length;
+    const social = promoPackages.filter(p => p.type === 'SocialMedia').length;
+    const video = promoPackages.filter(p => p.type === 'VideoProduction').length;
+    const active = promoPackages.filter(p => p.isActive).length;
+    return { total, social, video, active };
+  };
+
   const stats = getStats();
+  const promoStats = getPromoStats();
 
   if (isLoading) {
     return (
@@ -230,272 +380,473 @@ function AdminPackagePricesPageContent() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ödənişli Xidmətlər</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Saytdakı elanlar üçün VIP, PREMIUM və BOOST ödənişli xidmətlərinin idarə edilməsi
+            Saytdakı elanlar üçün VIP, PREMIUM, BOOST və Sosial/Video xidmətlərinin idarə edilməsi
           </p>
         </div>
         {canManage && (
-          <Button size="sm" className="w-full md:w-auto text-center justify-center flex" onClick={() => handleOpenModal()}>
-            Yeni Ödənişli Xidmət Yarat
+          <Button size="sm" className="w-full md:w-auto text-center justify-center flex" onClick={() => mainTab === 'standard' ? handleOpenModal() : handleOpenPromoModal()}>
+            {mainTab === 'standard' ? 'Yeni Ödənişli Xidmət Yarat' : 'Yeni Sosial/Video Paketi Yarat'}
           </Button>
         )}
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm flex items-center justify-between border-l-4 border-l-blue-500">
-          <div>
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Cəmi Paketlər</p>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-          </div>
-          <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-950/20 rounded-xl text-blue-500 flex-shrink-0">
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#FF4F08' }}>
-          <div>
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">VIP Paketləri</p>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.vip}</p>
-          </div>
-          <div className="p-2 sm:p-3 rounded-xl text-[#FF4F08] flex-shrink-0" style={{ backgroundColor: 'rgba(255, 79, 8, 0.08)' }}>
-            <VipIcon size={20} className="sm:hidden" />
-            <VipIcon size={24} className="hidden sm:block" />
-          </div>
-        </div>
-        <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#FF9D00' }}>
-          <div>
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Premium Paketləri</p>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.prem}</p>
-          </div>
-          <div className="p-2 sm:p-3 rounded-xl text-[#FF9D00] flex-shrink-0" style={{ backgroundColor: 'rgba(255, 157, 0, 0.08)' }}>
-            <PremiumIcon size={20} className="sm:hidden" />
-            <PremiumIcon size={24} className="hidden sm:block" />
-          </div>
-        </div>
-        <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#16a34a' }}>
-          <div>
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">BOOST Paketləri</p>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.boost}</p>
-          </div>
-          <div className="p-2 sm:p-3 rounded-xl text-[#16a34a] flex-shrink-0" style={{ backgroundColor: 'rgba(22, 163, 74, 0.08)' }}>
-            <RocketIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
+      {/* Main Tab Toggle */}
+      <div className="flex border-b border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setMainTab('standard')}
+          className={`py-3 px-6 font-semibold border-b-2 text-sm transition-all duration-200 ${
+            mainTab === 'standard'
+              ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Standart Paketlər (VIP, Premium, Boost)
+        </button>
+        <button
+          onClick={() => setMainTab('special')}
+          className={`py-3 px-6 font-semibold border-b-2 text-sm transition-all duration-200 ${
+            mainTab === 'special'
+              ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Sosial & Video Paketləri
+        </button>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
-        <div className="flex flex-row w-full overflow-x-auto scroll-smooth whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {(['all', 'Premium', 'Vip', 'Boost'] as const).map(tab => {
-            const isActive = activeTab === tab;
-
-            // Tab-specific styles
-            let activeBgClass = '';
-            let activeBorderColor = '';
-            let activeTextColorClass = '';
-
-            if (tab === 'all') {
-              activeBgClass = 'bg-blue-50/50 dark:bg-blue-950/10';
-              activeBorderColor = '#3b82f6';
-              activeTextColorClass = 'text-blue-600 dark:text-blue-400';
-            } else if (tab === 'Premium') {
-              activeBgClass = 'bg-[#FFFDF0] dark:bg-amber-950/10';
-              activeBorderColor = '#FF9D00';
-              activeTextColorClass = 'text-[#FF9D00]';
-            } else if (tab === 'Vip') {
-              activeBgClass = 'bg-[#FFF5F2] dark:bg-orange-950/10';
-              activeBorderColor = '#FF4F08';
-              activeTextColorClass = 'text-[#FF4F08]';
-            } else if (tab === 'Boost') {
-              activeBgClass = 'bg-emerald-50/50 dark:bg-emerald-950/10';
-              activeBorderColor = '#16a34a';
-              activeTextColorClass = 'text-[#16a34a]';
-            }
-
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 min-w-[90px] sm:min-w-0 flex flex-col items-center justify-center gap-2 py-4 px-3 sm:px-6 border-b-[3px] transition-all duration-300 ${isActive
-                  ? `${activeBgClass} ${activeTextColorClass}`
-                  : 'border-b-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/20'
-                  }`}
-                style={isActive ? { borderBottomColor: activeBorderColor } : {}}
-              >
-                <div className="transition-transform duration-300 transform group-hover:scale-110 flex items-center justify-center">
-                  {tab === 'all' && (
-                    <svg className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                  )}
-                  {tab === 'Premium' && (
-                    <PremiumIcon size={24} isGray={!isActive} />
-                  )}
-                  {tab === 'Vip' && (
-                    <VipIcon size={24} />
-                  )}
-                  {tab === 'Boost' && (
-                    <RocketIcon className={`w-5 h-5 ${isActive ? 'text-[#16a34a]' : 'text-gray-400'}`} />
-                  )}
-                </div>
-                <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                  {tab === 'all' ? 'Hamısı' : tab === 'Premium' ? 'Premium' : tab === 'Vip' ? 'VIP' : 'İrəli çək'}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {filteredPackages.map(pkg => {
-          const isVip = pkg.packageType === 'Vip';
-          const isPrem = pkg.packageType === 'Premium';
-          const isBoost = pkg.packageType === 'Boost';
-
-          return (
-            <div
-              key={pkg.id}
-              className={`bg-white dark:bg-gray-900 rounded-2xl border-t-4 p-4 sm:p-6 flex flex-col shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden border-x border-b border-gray-200 dark:border-gray-800 dark:border-x-gray-800 dark:border-b-gray-800`}
-              style={{
-                borderTopColor: isVip ? '#FF4F08' : isPrem ? '#FF9D00' : '#16a34a'
-              }}
-            >
-              {/* Type Badge Background Accent & Icon watermark */}
-              <div
-                className="absolute -top-3 -right-3 w-20 h-20 rounded-full flex items-center justify-center opacity-[0.08] dark:opacity-[0.12] rotate-12 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
-                style={{
-                  color: isVip ? '#FF4F08' : isPrem ? '#FF9D00' : '#16a34a',
-                  backgroundColor: isVip ? 'rgba(255, 79, 8, 0.1)' : isPrem ? 'rgba(255, 157, 0, 0.1)' : 'rgba(22, 163, 74, 0.1)'
-                }}
-              >
-                {isVip && <VipIcon size={40} />}
-                {isPrem && <PremiumIcon size={40} />}
-                {isBoost && <RocketIcon className="w-10 h-10" />}
+      {mainTab === 'standard' ? (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm flex items-center justify-between border-l-4 border-l-blue-500">
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Cəmi Paketlər</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
               </div>
+              <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-950/20 rounded-xl text-blue-500 flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#FF4F08' }}>
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">VIP Paketləri</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.vip}</p>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl text-[#FF4F08] flex-shrink-0" style={{ backgroundColor: 'rgba(255, 79, 8, 0.08)' }}>
+                <VipIcon size={20} className="sm:hidden" />
+                <VipIcon size={24} className="hidden sm:block" />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#FF9D00' }}>
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Premium Paketləri</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.prem}</p>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl text-[#FF9D00] flex-shrink-0" style={{ backgroundColor: 'rgba(255, 157, 0, 0.08)' }}>
+                <PremiumIcon size={20} className="sm:hidden" />
+                <PremiumIcon size={24} className="hidden sm:block" />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#16a34a' }}>
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">BOOST Paketləri</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.boost}</p>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl text-[#16a34a] flex-shrink-0" style={{ backgroundColor: 'rgba(22, 163, 74, 0.08)' }}>
+                <RocketIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+            </div>
+          </div>
 
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div>
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2"
+          {/* Tabs */}
+          <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex flex-row w-full overflow-x-auto scroll-smooth whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {(['all', 'Premium', 'Vip', 'Boost'] as const).map(tab => {
+                const isActive = activeTab === tab;
+
+                // Tab-specific styles
+                let activeBgClass = '';
+                let activeBorderColor = '';
+                let activeTextColorClass = '';
+
+                if (tab === 'all') {
+                  activeBgClass = 'bg-blue-50/50 dark:bg-blue-950/10';
+                  activeBorderColor = '#3b82f6';
+                  activeTextColorClass = 'text-blue-600 dark:text-blue-400';
+                } else if (tab === 'Premium') {
+                  activeBgClass = 'bg-[#FFFDF0] dark:bg-amber-950/10';
+                  activeBorderColor = '#FF9D00';
+                  activeTextColorClass = 'text-[#FF9D00]';
+                } else if (tab === 'Vip') {
+                  activeBgClass = 'bg-[#FFF5F2] dark:bg-orange-950/10';
+                  activeBorderColor = '#FF4F08';
+                  activeTextColorClass = 'text-[#FF4F08]';
+                } else if (tab === 'Boost') {
+                  activeBgClass = 'bg-emerald-50/50 dark:bg-emerald-950/10';
+                  activeBorderColor = '#16a34a';
+                  activeTextColorClass = 'text-[#16a34a]';
+                }
+
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 min-w-[90px] sm:min-w-0 flex flex-col items-center justify-center gap-2 py-4 px-3 sm:px-6 border-b-[3px] transition-all duration-300 ${isActive
+                      ? `${activeBgClass} ${activeTextColorClass}`
+                      : 'border-b-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/20'
+                      }`}
+                    style={isActive ? { borderBottomColor: activeBorderColor } : {}}
+                  >
+                    <div className="transition-transform duration-300 transform group-hover:scale-110 flex items-center justify-center">
+                      {tab === 'all' && (
+                        <svg className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                      )}
+                      {tab === 'Premium' && (
+                        <PremiumIcon size={24} isGray={!isActive} />
+                      )}
+                      {tab === 'Vip' && (
+                        <VipIcon size={24} />
+                      )}
+                      {tab === 'Boost' && (
+                        <RocketIcon className={`w-5 h-5 ${isActive ? 'text-[#16a34a]' : 'text-gray-400'}`} />
+                      )}
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider">
+                      {tab === 'all' ? 'Hamısı' : tab === 'Premium' ? 'Premium' : tab === 'Vip' ? 'VIP' : 'İrəli çək'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Content Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredPackages.map(pkg => {
+              const isVip = pkg.packageType === 'Vip';
+              const isPrem = pkg.packageType === 'Premium';
+              const isBoost = pkg.packageType === 'Boost';
+
+              return (
+                <div
+                  key={pkg.id}
+                  className={`bg-white dark:bg-gray-900 rounded-2xl border-t-4 p-4 sm:p-6 flex flex-col shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden border-x border-b border-gray-200 dark:border-gray-800 dark:border-x-gray-800 dark:border-b-gray-800`}
+                  style={{
+                    borderTopColor: isVip ? '#FF4F08' : isPrem ? '#FF9D00' : '#16a34a'
+                  }}
+                >
+                  {/* Type Badge Background Accent & Icon watermark */}
+                  <div
+                    className="absolute -top-3 -right-3 w-20 h-20 rounded-full flex items-center justify-center opacity-[0.08] dark:opacity-[0.12] rotate-12 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
                     style={{
                       color: isVip ? '#FF4F08' : isPrem ? '#FF9D00' : '#16a34a',
-                      backgroundColor: isVip ? 'rgba(255, 79, 8, 0.08)' : isPrem ? 'rgba(255, 157, 0, 0.08)' : 'rgba(22, 163, 74, 0.08)'
+                      backgroundColor: isVip ? 'rgba(255, 79, 8, 0.1)' : isPrem ? 'rgba(255, 157, 0, 0.1)' : 'rgba(22, 163, 74, 0.1)'
                     }}
                   >
-                    {isVip && <VipIcon size={12} />}
-                    {isPrem && <PremiumIcon size={12} />}
-                    {isBoost && <RocketIcon className="w-3 h-3" />}
-                    {pkg.packageType === 'Boost' ? 'BOOST' : pkg.packageType}
-                  </span>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-snug">
-                    {pkg.description || `${pkg.packageType} Paketi`}
-                  </h3>
-                  {pkg.descriptionRu && (
-                    <p className="text-xs text-gray-400 italic mt-0.5">{pkg.descriptionRu}</p>
-                  )}
+                    {isVip && <VipIcon size={40} />}
+                    {isPrem && <PremiumIcon size={40} />}
+                    {isBoost && <RocketIcon className="w-10 h-10" />}
+                  </div>
+
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <div>
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2"
+                        style={{
+                          color: isVip ? '#FF4F08' : isPrem ? '#FF9D00' : '#16a34a',
+                          backgroundColor: isVip ? 'rgba(255, 79, 8, 0.08)' : isPrem ? 'rgba(255, 157, 0, 0.08)' : 'rgba(22, 163, 74, 0.08)'
+                        }}
+                      >
+                        {isVip && <VipIcon size={12} />}
+                        {isPrem && <PremiumIcon size={12} />}
+                        {isBoost && <RocketIcon className="w-3 h-3" />}
+                        {pkg.packageType === 'Boost' ? 'BOOST' : pkg.packageType}
+                      </span>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-snug">
+                        {pkg.description || `${pkg.packageType} Paketi`}
+                      </h3>
+                      {pkg.descriptionRu && (
+                        <p className="text-xs text-gray-400 italic mt-0.5">{pkg.descriptionRu}</p>
+                      )}
+                    </div>
+                    {canManage && (
+                      <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity relative z-10">
+                        <button
+                          onClick={() => handleOpenModal(pkg)}
+                          className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                          title="Redaktə et"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(pkg.id)}
+                          className="p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20"
+                          title="Sil"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Price Details Block */}
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3.5 sm:p-4 mb-3 sm:mb-4 border border-gray-100 dark:border-gray-700 mt-auto">
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
+                      Xidmət Qiyməti
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {pkg.price?.toFixed(2)} ₼
+                    </p>
+                  </div>
+
+                  {/* Package Details */}
+                  <div className="space-y-3 pt-2">
+                    {isBoost ? (
+                      <>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <RocketIcon className="w-4 h-4 text-emerald-500" />
+                          <span>
+                            Boost Limiti: <strong className="text-gray-900 dark:text-white">{pkg.boostCount} dəfə</strong>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>
+                            Hər <strong className="text-gray-900 dark:text-white">{pkg.intervalHours} saatdan</strong> bir
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          style={{ color: isVip ? '#FF4F08' : '#FF9D00' }}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <span>
+                          Aktivlik Müddəti: <strong className="text-gray-900 dark:text-white">{pkg.intervalDay} gün</strong>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                 </div>
-                {canManage && (
-                  <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity relative z-10">
-                    <button
-                      onClick={() => handleOpenModal(pkg)}
-                      className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
-                      title="Redaktə et"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(pkg.id)}
-                      className="p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20"
-                      title="Sil"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                )}
+              );
+            })}
+
+            {filteredPackages.length === 0 && (
+              <div className="col-span-full py-16 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl flex flex-col items-center justify-center">
+                <p className="text-gray-500 dark:text-gray-400">Bu kateqoriyada heç bir xidmət paketi tapılmadı</p>
               </div>
-
-              {/* Price Details Block */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3.5 sm:p-4 mb-3 sm:mb-4 border border-gray-100 dark:border-gray-700 mt-auto">
-                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
-                  Xidmət Qiyməti
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {pkg.price?.toFixed(2)} ₼
-                </p>
-              </div>
-
-              {/* Package Details */}
-              <div className="space-y-3 pt-2">
-                {isBoost ? (
-                  <>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <RocketIcon className="w-4 h-4 text-emerald-500" />
-                      <span>
-                        Boost Limiti: <strong className="text-gray-900 dark:text-white">{pkg.boostCount} dəfə</strong>
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>
-                        Hər <strong className="text-gray-900 dark:text-white">{pkg.intervalHours} saatdan</strong> bir
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      style={{ color: isVip ? '#FF4F08' : '#FF9D00' }}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span>
-                      Aktivlik Müddəti: <strong className="text-gray-900 dark:text-white">{pkg.intervalDay} gün</strong>
-                    </span>
-                  </div>
-                )}
-              </div>
-
-            </div>
-          );
-        })}
-
-        {filteredPackages.length === 0 && (
-          <div className="col-span-full py-16 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl flex flex-col items-center justify-center">
-            <p className="text-gray-500 dark:text-gray-400">Bu kateqoriyada heç bir xidmət paketi tapılmadı</p>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <>
+          {/* Special Stats Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm flex items-center justify-between border-l-4 border-l-blue-500">
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Cəmi Paketlər</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{promoStats.total}</p>
+              </div>
+              <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-950/20 rounded-xl text-blue-500 flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#3b82f6' }}>
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Sosial Paketlər</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{promoStats.social}</p>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl text-blue-500 flex-shrink-0" style={{ backgroundColor: 'rgba(59, 130, 246, 0.08)' }}>
+                <SocialIcon size={24} />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#8b5cf6' }}>
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Video & YouTube</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{promoStats.video}</p>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl text-violet-500 flex-shrink-0" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
+                <VideoIcon size={24} />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-4 sm:p-5 shadow-sm border-l-4 flex items-center justify-between" style={{ borderLeftColor: '#16a34a' }}>
+              <div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Aktiv Paketlər</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{promoStats.active}</p>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl text-green-500 flex-shrink-0" style={{ backgroundColor: 'rgba(22, 163, 74, 0.08)' }}>
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
 
-      {/* Modal */}
+          {/* Special Tabs */}
+          <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex flex-row w-full overflow-x-auto scroll-smooth whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {([
+                { id: 'all', label: 'Hamısı', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z" /></svg>, color: '#3b82f6', bg: 'bg-blue-50/50 dark:bg-blue-950/10', text: 'text-blue-600 dark:text-blue-400' },
+                { id: 'SocialMedia', label: 'Sosial Media', icon: <SocialIcon size={20} />, color: '#3b82f6', bg: 'bg-blue-50/50 dark:bg-blue-950/10', text: 'text-blue-600 dark:text-blue-400' },
+                { id: 'VideoProduction', label: 'Video & YouTube', icon: <VideoIcon size={20} />, color: '#8b5cf6', bg: 'bg-violet-50/50 dark:bg-violet-950/10', text: 'text-violet-600 dark:text-violet-400' }
+              ] as const).map(tab => {
+                const isActive = activePromoTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActivePromoTab(tab.id)}
+                    className={`flex-1 min-w-[100px] sm:min-w-0 flex flex-col items-center justify-center gap-2 py-4 px-3 sm:px-6 border-b-[3px] transition-all duration-300 ${isActive
+                      ? `${tab.bg} ${tab.text}`
+                      : 'border-b-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/20'
+                      }`}
+                    style={isActive ? { borderBottomColor: tab.color } : {}}
+                  >
+                    <div className="transition-transform duration-300 transform group-hover:scale-110 flex items-center justify-center">
+                      {tab.icon}
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider">
+                      {tab.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Special Content Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredPromoPackages.map(pkg => {
+              const isSocial = pkg.type === 'SocialMedia';
+              return (
+                <div
+                  key={pkg.id}
+                  className={`bg-white dark:bg-gray-900 rounded-2xl border-t-4 p-4 sm:p-6 flex flex-col shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden border-x border-b border-gray-200 dark:border-gray-800`}
+                  style={{
+                    borderTopColor: isSocial ? '#3b82f6' : '#8b5cf6'
+                  }}
+                >
+                  {/* Watermark */}
+                  <div
+                    className="absolute -top-3 -right-3 w-20 h-20 rounded-full flex items-center justify-center opacity-[0.08] dark:opacity-[0.12] rotate-12 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
+                    style={{
+                      color: isSocial ? '#3b82f6' : '#8b5cf6',
+                      backgroundColor: isSocial ? 'rgba(59, 130, 246, 0.1)' : 'rgba(139, 92, 246, 0.1)'
+                    }}
+                  >
+                    {isSocial ? <SocialIcon size={40} /> : <VideoIcon size={40} />}
+                  </div>
+
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                          style={{
+                            color: isSocial ? '#3b82f6' : '#8b5cf6',
+                            backgroundColor: isSocial ? 'rgba(59, 130, 246, 0.08)' : 'rgba(139, 92, 246, 0.08)'
+                          }}
+                        >
+                          {isSocial ? 'SOSİAL MEDİA' : 'VİDEO / YOUTUBE'}
+                        </span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${pkg.isActive ? 'bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'}`}>
+                          {pkg.isActive ? 'Aktiv' : 'Deaktiv'}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-snug">
+                        {pkg.name}
+                      </h3>
+                      {pkg.nameRu && (
+                        <p className="text-xs text-gray-400 italic mt-0.5">{pkg.nameRu}</p>
+                      )}
+                    </div>
+                    {canManage && (
+                      <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity relative z-10">
+                        <button
+                          onClick={() => handleOpenPromoModal(pkg)}
+                          className="p-1.5 rounded-lg text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                          title="Redaktə et"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handlePromoDelete(pkg.id)}
+                          className="p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20"
+                          title="Sil"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                    {pkg.description}
+                    {pkg.descriptionRu && (
+                      <p className="text-xs text-gray-400 italic mt-1">{pkg.descriptionRu}</p>
+                    )}
+                  </div>
+
+                  {/* Price Block */}
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3.5 sm:p-4 border border-gray-100 dark:border-gray-700 mt-auto">
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
+                      Xidmət Qiyməti
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {pkg.price?.toFixed(2)} ₼
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredPromoPackages.length === 0 && (
+              <div className="col-span-full py-16 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl flex flex-col items-center justify-center">
+                <p className="text-gray-500 dark:text-gray-400">Bu veridə heç bir xidmət paketi tapılmadı</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Standard Modal */}
       {isModalOpen && (
         <Modal
           isOpen={isModalOpen}
@@ -607,6 +958,111 @@ function AdminPackagePricesPageContent() {
 
             <Button type="submit" className="w-full mt-4">
               {editingPackage ? 'Dəyişiklikləri Saxla' : 'Xidmət Paketini Yarat'}
+            </Button>
+          </form>
+        </Modal>
+      )}
+
+      {/* Special Promotion Package Modal */}
+      {isPromoModalOpen && (
+        <Modal
+          isOpen={isPromoModalOpen}
+          onClose={() => setIsPromoModalOpen(false)}
+          title={editingPromoPackage ? 'Sosial/Video Reklam Paketini Redaktə Et' : 'Yeni Sosial/Video Reklam Paketi Yarat'}
+          className="max-w-[500px]"
+        >
+          <form onSubmit={handlePromoSubmit} className="space-y-4">
+            {/* Package Type Selection */}
+            <div>
+              <Label htmlFor="promoType">Paket Tipi</Label>
+              <select
+                id="promoType"
+                required
+                value={promoFormData.type}
+                onChange={e => setPromoFormData({ ...promoFormData, type: e.target.value })}
+                className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:focus:border-brand-800"
+              >
+                <option value="SocialMedia">Sosial Media (Facebook, Instagram, TikTok)</option>
+                <option value="VideoProduction">Video Çəkiliş & YouTube</option>
+              </select>
+            </div>
+
+            {/* Name AZ & RU */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="promoName">Paket Adı (AZ)</Label>
+                <Input
+                  id="promoName"
+                  required
+                  value={promoFormData.name}
+                  onChange={e => setPromoFormData({ ...promoFormData, name: e.target.value })}
+                  placeholder="Məs. Facebook Reklamı"
+                />
+              </div>
+              <div>
+                <Label htmlFor="promoNameRu">Paket Adı (RU)</Label>
+                <Input
+                  id="promoNameRu"
+                  value={promoFormData.nameRu}
+                  onChange={e => setPromoFormData({ ...promoFormData, nameRu: e.target.value })}
+                  placeholder="Məs. Реклама на Facebook"
+                />
+              </div>
+            </div>
+
+            {/* Description AZ & RU */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="promoDesc">Təsvir (AZ)</Label>
+                <Input
+                  id="promoDesc"
+                  required
+                  value={promoFormData.description}
+                  onChange={e => setPromoFormData({ ...promoFormData, description: e.target.value })}
+                  placeholder="Paketin təsviri..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="promoDescRu">Təsvir (RU)</Label>
+                <Input
+                  id="promoDescRu"
+                  value={promoFormData.descriptionRu}
+                  onChange={e => setPromoFormData({ ...promoFormData, descriptionRu: e.target.value })}
+                  placeholder="Описание пакета..."
+                />
+              </div>
+            </div>
+
+            {/* Price Input */}
+            <div>
+              <Label htmlFor="promoPrice">Qiymət (₼)</Label>
+              <Input
+                id="promoPrice"
+                type="number"
+                step={0.01}
+                required
+                value={promoFormData.price}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPromoFormData({ ...promoFormData, price: Number(e.target.value) })
+                }
+                placeholder="Qiymət daxil edin"
+              />
+            </div>
+
+            {/* IsActive Checkbox */}
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                id="promoIsActive"
+                type="checkbox"
+                checked={promoFormData.isActive}
+                onChange={e => setPromoFormData({ ...promoFormData, isActive: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+              />
+              <Label htmlFor="promoIsActive" className="!mb-0 select-none">Paket Aktivdir</Label>
+            </div>
+
+            <Button type="submit" className="w-full mt-4">
+              {editingPromoPackage ? 'Dəyişiklikləri Saxla' : 'Paketi Yarat'}
             </Button>
           </form>
         </Modal>

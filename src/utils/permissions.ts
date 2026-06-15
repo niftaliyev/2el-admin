@@ -26,6 +26,8 @@ export const permissionTranslations: Record<string, string> = {
   Roles_Delete: "Rolları silmək",
   Permissions_Assign: "İcazələri təyin etmək",
   Stores_Manage: "Mağazaları idarə etmək",
+  Promotions_View: "Sosial və Video Reklam Sorğularına baxmaq",
+  Promotions_Manage: "Sosial və Video Reklam Sorğularını idarə etmək",
 };
 
 export const getPermissionLabel = (permission: string): string => {

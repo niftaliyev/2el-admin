@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PermissionGuard from '@/components/auth/PermissionGuard';
+import { useAuth } from '@/context/AuthContext';
 
 const AD_STATUSES = [
   { value: 'all', label: 'Hamısı', color: 'gray' },
@@ -40,6 +41,8 @@ const statusLabel = (status: string) => {
 };
 
 function AdminAdsPageContent() {
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission('Ads_Edit_Any');
   const [ads, setAds] = useState<AdminAd[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
@@ -164,8 +167,8 @@ function AdminAdsPageContent() {
                 key={s.value}
                 onClick={() => { setActiveTab(s.value); setPage(1); setSelectedIds([]); }}
                 className={`flex items-center gap-2 px-4 py-3 border-b-2 text-sm font-medium whitespace-nowrap transition-colors ${activeTab === s.value
-                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                   }`}
               >
                 {s.label}
@@ -236,7 +239,11 @@ function AdminAdsPageContent() {
                     key={ad.id}
                     className={`group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${selectedIds.includes(ad.id) ? 'bg-brand-50 dark:bg-brand-900/10' : ''}`}
                     onClick={(e) => {
-                      if ((e.target as HTMLElement).closest('input') || (e.target as HTMLElement).closest('button')) return;
+                      if (
+                        (e.target as HTMLElement).closest('input') ||
+                        (e.target as HTMLElement).closest('button') ||
+                        (e.target as HTMLElement).closest('a')
+                      ) return;
                       router.push(`/ads/${ad.id}`);
                     }}
                   >
@@ -289,6 +296,17 @@ function AdminAdsPageContent() {
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         </Link>
+                        {canEdit && (
+                          <Link
+                            href={`/ads/${ad.id}/edit`}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                            title="Redaktə et"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </Link>
+                        )}
                         {ad.status === 'pending' && (
                           <button
                             onClick={() => setModalState({ isOpen: true, action: 'status', ad, status: 1 })}
@@ -340,8 +358,8 @@ function AdminAdsPageContent() {
               key={i}
               onClick={() => setPage(i + 1)}
               className={`w-9 h-9 rounded-lg text-sm font-semibold transition-all ${page === i + 1
-                  ? 'bg-brand-500 text-white shadow-sm'
-                  : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                ? 'bg-brand-500 text-white shadow-sm'
+                : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
             >
               {i + 1}
@@ -384,8 +402,8 @@ function AdminAdsPageContent() {
               <button
                 onClick={handleConfirm}
                 className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors ${modalState.action === 'status'
-                    ? (modalState.status === 1 ? 'bg-success-500 hover:bg-success-600' : 'bg-brand-500 hover:bg-brand-600')
-                    : 'bg-error-500 hover:bg-error-600'
+                  ? (modalState.status === 1 ? 'bg-success-500 hover:bg-success-600' : 'bg-brand-500 hover:bg-brand-600')
+                  : 'bg-error-500 hover:bg-error-600'
                   }`}
               >
                 {modalState.action === 'status' ? 'Təsdiqlə' : 'Sil'}
