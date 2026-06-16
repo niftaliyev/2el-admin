@@ -6,7 +6,10 @@ import { useState, useEffect } from 'react';
 const getImageUrl = (path: string | null | undefined): string => {
   if (!path || !path.trim()) return '';
   if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) return path;
-  const baseUrl = 'http://84.247.184.186:5000';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const baseUrl = apiBaseUrl
+    ? apiBaseUrl.replace(/\/api\/?$/, '')
+    : (process.env.NODE_ENV === 'production' ? 'http://13.140.173.54:5000' : 'http://localhost:5156');
   return `${baseUrl}/${path.replace(/\\/g, '/').replace(/^\//, '')}`;
 };
 import { adminService } from '@/services/admin.service';
