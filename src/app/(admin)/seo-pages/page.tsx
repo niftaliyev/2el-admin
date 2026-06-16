@@ -13,7 +13,7 @@ const getSiteUrl = () => {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
   }
   return typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? 'http://84.247.184.186'
+    ? 'http://13.140.173.54'
     : 'http://localhost:3000';
 };
 
