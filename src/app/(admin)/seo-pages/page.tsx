@@ -261,7 +261,7 @@ function AdminSeoPagesContent() {
               </select>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -270,7 +270,7 @@ function AdminSeoPagesContent() {
             >
               Əvvəlki
             </button>
-            
+
             {getPageNumbers().map((p, idx) => (
               p === '...' ? (
                 <span key={`dots-${idx}`} className="px-1 text-xs text-gray-400">...</span>
@@ -278,11 +278,10 @@ function AdminSeoPagesContent() {
                 <button
                   key={`page-${p}`}
                   onClick={() => setCurrentPage(Number(p))}
-                  className={`h-8 w-8 rounded-lg text-xs font-bold transition-all active:scale-95 ${
-                    p === currentPage
+                  className={`h-8 w-8 rounded-lg text-xs font-bold transition-all active:scale-95 ${p === currentPage
                       ? 'bg-brand-500 text-white shadow-sm shadow-brand-500/10'
                       : 'bg-gray-50 hover:bg-gray-100 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300'
-                  }`}
+                    }`}
                 >
                   {p}
                 </button>
