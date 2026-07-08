@@ -13,7 +13,7 @@ const getSiteUrl = () => {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
   }
   return typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? 'http://13.140.173.54'
+    ? 'https://2el.az'
     : 'http://localhost:3000';
 };
 
@@ -279,8 +279,8 @@ function AdminSeoPagesContent() {
                   key={`page-${p}`}
                   onClick={() => setCurrentPage(Number(p))}
                   className={`h-8 w-8 rounded-lg text-xs font-bold transition-all active:scale-95 ${p === currentPage
-                      ? 'bg-brand-500 text-white shadow-sm shadow-brand-500/10'
-                      : 'bg-gray-50 hover:bg-gray-100 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300'
+                    ? 'bg-brand-500 text-white shadow-sm shadow-brand-500/10'
+                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300'
                     }`}
                 >
                   {p}

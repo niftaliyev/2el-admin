@@ -315,7 +315,7 @@ function AdEditPageContent({ params }: { params: Promise<{ id: string }> }) {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
     const serverUrl = apiBaseUrl
       ? apiBaseUrl.replace(/\/api\/?$/, '')
-      : (process.env.NODE_ENV === 'production' ? 'http://13.140.173.54:5000' : 'http://localhost:5156');
+      : (process.env.NODE_ENV === 'production' ? 'https://api.2el.az' : 'http://localhost:5156');
     return `${serverUrl}${path}`;
   };
 
