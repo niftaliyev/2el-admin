@@ -9,7 +9,7 @@ const getImageUrl = (path: string | null | undefined): string => {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
   const baseUrl = apiBaseUrl
     ? apiBaseUrl.replace(/\/api\/?$/, '')
-    : (process.env.NODE_ENV === 'production' ? 'http://13.140.173.54:5000' : 'http://localhost:5156');
+    : (process.env.NODE_ENV === 'production' ? 'https://api.2el.az' : 'http://localhost:5156');
   return `${baseUrl}/${path.replace(/\\/g, '/').replace(/^\//, '')}`;
 };
 import { adminService } from '@/services/admin.service';
