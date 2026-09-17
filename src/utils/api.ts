@@ -11,15 +11,24 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     ? 'https://api.2el.az/api'
     : 'http://localhost:5156/api');
 
+const CLIENT_KEY = '2el-web-client-token-9b48c1f7';
+
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'X-App-Client-Key': CLIENT_KEY,
+    'X-Requested-With': 'XMLHttpRequest',
   },
 });
 
 // Request interceptor to add the token to every request
 api.interceptors.request.use((config) => {
+  if (config.headers) {
+    config.headers['X-App-Client-Key'] = CLIENT_KEY;
+    config.headers['X-Requested-With'] = 'XMLHttpRequest';
+  }
+
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     if (token) {
@@ -91,6 +100,11 @@ api.interceptors.response.use(
         const response = await axios.post(`${BASE_URL}/admin/auth/refresh`, {
           accessToken,
           refreshToken,
+        }, {
+          headers: {
+            'X-App-Client-Key': CLIENT_KEY,
+            'X-Requested-With': 'XMLHttpRequest',
+          }
         });
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;

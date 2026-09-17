@@ -256,7 +256,7 @@ function AdminStoreRequestsPageContent() {
                   {/* Top info for mobile / Left for desktop */}
                   <div className="flex items-center gap-4 w-full lg:w-auto">
                     <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
-                      {req.logoUrl ? (
+                      {req.logoUrl && req.logoUrl.trim() !== '' ? (
                         <img src={req.logoUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
@@ -604,7 +604,7 @@ function AdminStoreRequestsPageContent() {
                     Vizual Materiallar
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {selectedRequest.logoUrl && (
+                    {selectedRequest.logoUrl && selectedRequest.logoUrl.trim() !== '' && (
                       <div className="group">
                         <p className="text-[10px] text-gray-400 font-bold uppercase mb-3 tracking-wider">Loqo</p>
                         <div className="aspect-square rounded-3xl overflow-hidden border-4 border-gray-50 dark:border-gray-900 shadow-xl group-hover:shadow-brand-500/10 transition-all">
@@ -612,7 +612,7 @@ function AdminStoreRequestsPageContent() {
                         </div>
                       </div>
                     )}
-                    {selectedRequest.coverUrl && (
+                    {selectedRequest.coverUrl && selectedRequest.coverUrl.trim() !== '' && (
                       <div className="group">
                         <p className="text-[10px] text-gray-400 font-bold uppercase mb-3 tracking-wider">Cover Foto</p>
                         <div className="aspect-video rounded-3xl overflow-hidden border-4 border-gray-50 dark:border-gray-900 shadow-xl group-hover:shadow-brand-500/10 transition-all">
