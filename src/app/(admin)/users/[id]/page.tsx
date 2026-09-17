@@ -15,10 +15,11 @@ function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) 
   const { user: currentUser } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    action: 'status' | 'delete' | 'credit';
-  }>({ isOpen: false, action: 'status' });
+    action: 'block' | 'unblock' | 'delete' | 'credit';
+  }>({ isOpen: false, action: 'block' });
   const [creditAmount, setCreditAmount] = useState<number>(0);
 
   const isSelf = currentUser?.id === id;
@@ -41,16 +42,25 @@ function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) 
 
   const handleStatusChange = async (isBlocked: boolean) => {
     try {
+      setIsSubmitting(true);
       await adminService.updateUserStatus(id, isBlocked);
       toast.success(isBlocked ? 'İstifadəçi bloklandı' : 'İstifadəçi aktivləşdirildi');
+      setModalState({ ...modalState, isOpen: false });
       fetchUser();
     } catch {
       toast.error('Xəta baş verdi');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleCreditBalance = async () => {
+    if (creditAmount <= 0) {
+      toast.error('Məbləğ 0-dan böyük olmalıdır');
+      return;
+    }
     try {
+      setIsSubmitting(true);
       await adminService.creditUser({ userId: id, amount: creditAmount });
       toast.success('Balans artırıldı');
       setModalState({ ...modalState, isOpen: false });
@@ -58,16 +68,22 @@ function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) 
       fetchUser();
     } catch {
       toast.error('Xəta baş verdi');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
     try {
+      setIsSubmitting(true);
       await adminService.deleteUser(id);
       toast.success('İstifadəçi silindi');
+      setModalState({ ...modalState, isOpen: false });
       router.push('/users');
     } catch {
       toast.error('Silərkən xəta baş verdi');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -105,7 +121,7 @@ function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) 
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm text-center">
             <div className="relative inline-block mb-4">
               <div className="w-24 h-24 rounded-full border-4 border-brand-50 dark:border-brand-900/20 overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto">
-                {user.profilePhoto ? (
+                {user.profilePhoto && user.profilePhoto.trim() !== '' ? (
                   <img src={user.profilePhoto} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-3xl font-bold text-brand-600">{user.name?.[0]?.toUpperCase()}</span>
@@ -138,14 +154,14 @@ function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) 
                 <>
                   {user.status === 'active' ? (
                     <button 
-                      onClick={() => handleStatusChange(true)}
+                      onClick={() => setModalState({ isOpen: true, action: 'block' })}
                       className="w-full py-2.5 rounded-xl border border-error-200 text-error-600 font-semibold hover:bg-error-50 transition-colors"
                     >
                       Blok Et
                     </button>
                   ) : (
                     <button 
-                      onClick={() => handleStatusChange(false)}
+                      onClick={() => setModalState({ isOpen: true, action: 'unblock' })}
                       className="w-full py-2.5 rounded-xl border border-success-200 text-success-600 font-semibold hover:bg-success-50 transition-colors"
                     >
                       Blokdan Çıxart
@@ -170,7 +186,13 @@ function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) 
             <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm space-y-4">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Mağaza məlumatları</h3>
               <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-2xl">
-                <img src={user.storeInfo.logo} alt={user.storeInfo.storeName} className="w-12 h-12 rounded-xl object-cover" />
+                {user.storeInfo.logo && user.storeInfo.logo.trim() !== '' ? (
+                  <img src={user.storeInfo.logo} alt={user.storeInfo.storeName} className="w-12 h-12 rounded-xl object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center font-bold text-brand-600">
+                    {user.storeInfo.storeName?.[0]?.toUpperCase() || 'M'}
+                  </div>
+                )}
                 <div>
                   <p className="font-bold text-sm text-gray-900 dark:text-white">{user.storeInfo.storeName}</p>
                   <p className="text-xs text-gray-500">@{user.storeInfo.slug}</p>
@@ -237,33 +259,128 @@ function UserDetailPageContent({ params }: { params: Promise<{ id: string }> }) 
       {/* Modals */}
       {modalState.isOpen && (
         <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setModalState({ ...modalState, isOpen: false })} />
-          <div className="relative bg-white dark:bg-gray-900 w-full max-w-md rounded-3xl shadow-2xl p-8">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              {modalState.action === 'credit' ? 'Balans Artırımı' : 'Təsdiqlə'}
-            </h3>
-            
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => !isSubmitting && setModalState({ ...modalState, isOpen: false })} />
+          <div className="relative bg-white dark:bg-gray-900 w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-gray-100 dark:border-gray-800">
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                modalState.action === 'block' || modalState.action === 'delete'
+                  ? 'bg-error-50 dark:bg-error-900/20 text-error-600'
+                  : modalState.action === 'unblock'
+                  ? 'bg-success-50 dark:bg-success-900/20 text-success-600'
+                  : 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+              }`}>
+                {modalState.action === 'block' && (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                )}
+                {modalState.action === 'unblock' && (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                {modalState.action === 'delete' && (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                )}
+                {modalState.action === 'credit' && (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {modalState.action === 'credit' && 'Balans Artırımı'}
+                  {modalState.action === 'block' && 'İstifadəçini Blokla'}
+                  {modalState.action === 'unblock' && 'İstifadəçini Aktivləşdir'}
+                  {modalState.action === 'delete' && 'Hesabı Sil'}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">@{user.userName}</p>
+              </div>
+            </div>
+
+            {/* Modal Body */}
             {modalState.action === 'credit' ? (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-500">Nə qədər balans əlavə etmək istəyirsiniz? (AZN)</p>
-                <input 
-                  type="number" 
-                  value={creditAmount}
-                  onChange={(e) => setCreditAmount(Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xl font-bold text-brand-600"
-                />
+              <div className="space-y-4 my-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-semibold text-gray-900 dark:text-white">{user.name}</span> hesabına nə qədər balans əlavə etmək istəyirsiniz?
+                </p>
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    min="1"
+                    step="any"
+                    value={creditAmount || ''}
+                    placeholder="0"
+                    onChange={(e) => setCreditAmount(Number(e.target.value))}
+                    className="w-full px-4 py-3 pr-14 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xl font-bold text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    autoFocus
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">AZN</span>
+                </div>
               </div>
             ) : (
-              <p className="text-gray-500">Bu əməliyyatı yerinə yetirmək istədiyinizə əminsiniz?</p>
+              <div className="my-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {modalState.action === 'block' && (
+                    <>
+                      <strong className="text-gray-900 dark:text-white">{user.name}</strong> adlı istifadəçini bloklamaq istədiyinizə əminsiniz? Bloklanmış istifadəçi sayta daxil ola və ya elan yerləşdirə bilməyəcək.
+                    </>
+                  )}
+                  {modalState.action === 'unblock' && (
+                    <>
+                      <strong className="text-gray-900 dark:text-white">{user.name}</strong> adlı istifadəçinin blokunu qaldırıb hesabını yenidən aktivləşdirmək istədiyinizə əminsiniz?
+                    </>
+                  )}
+                  {modalState.action === 'delete' && (
+                    <>
+                      <strong className="text-gray-900 dark:text-white">{user.name}</strong> adlı istifadəçini silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarılmır və onun bütün məlumatları gizlədiləcək.
+                    </>
+                  )}
+                </p>
+              </div>
             )}
 
-            <div className="flex gap-4 mt-8">
-              <button onClick={() => setModalState({ ...modalState, isOpen: false })} className="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-700 font-bold">Ləğv et</button>
-              <button
-                onClick={modalState.action === 'credit' ? handleCreditBalance : handleDelete}
-                className="flex-1 py-3 rounded-2xl bg-brand-500 text-white font-bold"
+            {/* Modal Actions */}
+            <div className="flex gap-3 mt-6">
+              <button 
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => setModalState({ ...modalState, isOpen: false })} 
+                className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
-                Təsdiqlə
+                Ləğv et
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => {
+                  if (modalState.action === 'credit') handleCreditBalance();
+                  else if (modalState.action === 'block') handleStatusChange(true);
+                  else if (modalState.action === 'unblock') handleStatusChange(false);
+                  else if (modalState.action === 'delete') handleDelete();
+                }}
+                className={`flex-1 py-3 rounded-2xl font-semibold text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
+                  modalState.action === 'block' || modalState.action === 'delete'
+                    ? 'bg-error-500 hover:bg-error-600 shadow-lg shadow-error-500/20'
+                    : modalState.action === 'unblock'
+                    ? 'bg-success-500 hover:bg-success-600 shadow-lg shadow-success-500/20'
+                    : 'bg-brand-500 hover:bg-brand-600 shadow-lg shadow-brand-500/20'
+                }`}
+              >
+                {isSubmitting ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                ) : (
+                  <>
+                    {modalState.action === 'credit' && 'Balansı Artır'}
+                    {modalState.action === 'block' && 'Bəli, Blok Et'}
+                    {modalState.action === 'unblock' && 'Bəli, Aktivləşdir'}
+                    {modalState.action === 'delete' && 'Bəli, Sil'}
+                  </>
+                )}
               </button>
             </div>
           </div>

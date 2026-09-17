@@ -318,7 +318,7 @@ function AdminUsersPageContent() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center shrink-0 overflow-hidden">
-                          {user.profilePhoto ? (
+                          {user.profilePhoto && user.profilePhoto.trim() !== '' ? (
                             <img src={user.profilePhoto} alt={user.name} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-sm font-bold text-brand-600 dark:text-brand-400">{user.name?.[0]?.toUpperCase() || 'U'}</span>
